@@ -1,0 +1,1023 @@
+import { useState, useEffect, useRef, useMemo } from "react";
+import { profile } from "./profile";
+
+const meetingTypes = [
+  "Intro call (30 min)",
+  "Project inquiry (45 min)",
+  "Site visit",
+  "Press / interview",
+];
+const timeSlots = [
+  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+  "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+];
+const durations = ["30 minutes", "45 minutes", "60 minutes"];
+
+const stats = [
+  { n: 10, suffix: "+", label: "Years in practice" },
+  { n: 42, suffix: "",  label: "Built projects" },
+  { n: 11, suffix: "",  label: "Awards & honors" },
+  { n: 3,  suffix: "",  label: "Licensed states (NY/NJ/CT)" },
+];
+
+const services = [
+  { num: "01", title: "Architecture", body: "Single-family homes, civic and cultural buildings, and small-to-mid commercial work, taken from first sketch to final inspection." },
+  { num: "02", title: "Interiors",    body: "Bespoke interiors as rigorous as the architecture — millwork, lighting, and materiality detailed in-house." },
+  { num: "03", title: "Master Planning", body: "Feasibility studies and framework plans for waterfronts, campuses, and small downtowns. Clear diagrams, honest constraints." },
+  { num: "04", title: "Adaptive Reuse", body: "Reading what a building wants to become next — preserving structure and memory while making space for contemporary life." },
+];
+
+const process = [
+  { step: "I",  title: "Listen", body: "Site visits, long conversations, and reading the room. Programs become clear when the right questions are asked first." },
+  { step: "II", title: "Sketch", body: "Quick studies in plan, section, and physical model. Many options, fast — until the strongest idea emerges in pencil." },
+  { step: "III", title: "Refine", body: "Design development with structural, MEP, and landscape consultants. Materials selected, details drawn at full scale." },
+  { step: "IV", title: "Build",  body: "Construction administration, weekly site walks, and shop drawing review. The building gets made the way it was drawn." },
+];
+
+const filters = ["All", "Residential", "Cultural / Public", "Adaptive Reuse", "Public Space", "Commercial", "Urban Design"];
+
+const projects = [
+  { title: "Casa Verde", type: "Residential", year: "2025", location: "Hudson Valley, NY",
+    description: "A 2,400 sf family home built into a south-facing slope. Cross-laminated timber structure, ground-source heat pump, and a continuous concrete plinth that doubles as thermal mass.",
+    size: "2,400 sf", status: "Completed", role: "Architect of Record",
+    images: [
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=80",
+      "https://images.unsplash.com/photo-1600573472556-e636c2acda88?w=1600&q=80",
+    ] },
+  { title: "Coastal Library", type: "Cultural / Public", year: "2024", location: "Newport, RI",
+    description: "A 14,000 sf public library on a working harbor. Cedar-clad reading rooms cantilever toward the water; a central oculus draws daylight to the children's wing below.",
+    size: "14,000 sf", status: "Completed", role: "Project Architect (with Olson Kundig)",
+    images: [
+      "https://images.unsplash.com/photo-1481253127861-534498168948?w=1600&q=80",
+      "https://images.unsplash.com/photo-1568667256549-094345857637?w=1600&q=80",
+      "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1600&q=80",
+    ] },
+  { title: "The Foundry", type: "Adaptive Reuse", year: "2023", location: "Long Island City, NY",
+    description: "Conversion of a 1920s iron foundry into mixed-use studios and a ground-floor café. Existing trusses and brick were retained; new insertions are deliberately legible as contemporary additions.",
+    size: "38,000 sf", status: "Completed", role: "Architect of Record",
+    images: [
+      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=80",
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=80",
+      "https://images.unsplash.com/photo-1564540583246-934409427776?w=1600&q=80",
+    ] },
+  { title: "Park Pavilion", type: "Public Space", year: "2023", location: "Newark, NJ",
+    description: "An open-air community pavilion serving a neighborhood farmers' market and weekend events. A folded steel roof shelters a flexible 1,800 sf platform.",
+    size: "1,800 sf", status: "Completed", role: "Architect",
+    images: [
+      "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1600&q=80",
+      "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1600&q=80",
+    ] },
+  { title: "Atelier Tower", type: "Commercial", year: "2022", location: "Queens, NY",
+    description: "A six-story creative workspace for a small advertising firm. Operable façade panels and shared terraces on every floor extend the workday outdoors.",
+    size: "22,000 sf", status: "Completed", role: "Project Architect",
+    images: [
+      "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1600&q=80",
+      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80",
+    ] },
+  { title: "Riverwalk Master Plan", type: "Urban Design", year: "2021", location: "Troy, NY",
+    description: "A two-mile waterfront framework knitting together three former industrial parcels with public promenades, housing, and a flood-resilient edge.",
+    size: "47 acres", status: "Adopted by City Council", role: "Lead Designer",
+    images: [
+      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1600&q=80",
+      "https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=1600&q=80",
+    ] },
+];
+
+const experience = [
+  { role: "Senior Architect, Founder", firm: "Studio Marchetti", years: "2022 — Present", summary: "Founded a small practice focused on residential and cultural commissions across the Northeast. Lead designer on every project; manage clients, consultants, and CA." },
+  { role: "Project Architect", firm: "Olson Kundig (Associate)", years: "2018 — 2022", summary: "Led a 14,000 sf coastal public library and three single-family residences from SD through CA. Managed teams of four to six." },
+  { role: "Architectural Designer", firm: "BIG — Bjarke Ingels Group", years: "2015 — 2018", summary: "Contributed to early-stage concept and competition entries on cultural and mixed-use projects in New York and Copenhagen." },
+];
+
+const education = [
+  { degree: "Master of Architecture (M.Arch)", school: "Yale School of Architecture", year: "2015" },
+  { degree: "B.A., Architecture",              school: "University of California, Berkeley", year: "2012" },
+  { degree: "Licensed Architect — NY, NJ, CT", school: "NCARB Certified", year: "2018" },
+];
+
+const skills = {
+  Design: ["Concept & Schematic Design", "Design Development", "Construction Documents", "Construction Administration", "Sustainable & Passive House Design"],
+  Software: ["Revit", "AutoCAD", "Rhino + Grasshopper", "SketchUp", "V-Ray", "Enscape", "Adobe Creative Suite", "Lumion"],
+  Other: ["Hand drafting & sketching", "Physical model-making", "Permitting & zoning (NYC DOB)", "Specification writing (CSI MasterFormat)"],
+};
+
+const awards = [
+  { title: "AIA New York Honor Award — Coastal Library", year: "2024" },
+  { title: "Architectural Record — Vanguard Firms to Watch", year: "2023" },
+  { title: "AIA Brooklyn Merit Award — The Foundry", year: "2023" },
+  { title: "Architizer A+ Award Finalist — Casa Verde", year: "2025" },
+  { title: "AZ Awards — People's Choice, Park Pavilion", year: "2023" },
+  { title: "Surface Travel Awards — Best New Civic Building", year: "2024" },
+];
+
+const press = ["Architectural Record", "Dezeen", "Wallpaper*", "The New York Times", "Domus", "ArchDaily"];
+
+const coursework = [
+  { code: "C01", group: "UC Berkeley · B.A. Architecture", title: "Material Atlas",     subtitle: "Vernacular timber construction in the Northeast",   studio: "Senior Honors Thesis — Renee Y. Chow", term: "Spring 2012", file: "/coursework/C01_Material_Atlas.pdf" },
+  { code: "C02", group: "Yale · M.Arch I",                title: "The Vertical Garden", subtitle: "A hybrid tower of housing and public greenhouses",  studio: "Adv. Studio I — Mark Foster Gage",     term: "Fall 2013",   file: "/coursework/C02_The_Vertical_Garden.pdf" },
+  { code: "C03", group: "Yale · M.Arch I",                title: "Threshold House",     subtitle: "A small home in the order of approach",             studio: "Adv. Studio II — Tatiana Bilbao",      term: "Spring 2014", file: "/coursework/C03_Threshold_House.pdf" },
+  { code: "C04", group: "Yale · M.Arch I",                title: "Civic Pavilion",      subtitle: "A small library on a working harbor",               studio: "Adv. Studio III — Deborah Berke",      term: "Fall 2014",   file: "/coursework/C04_Civic_Pavilion.pdf" },
+  { code: "C05", group: "Yale · M.Arch I (Final Studio)", title: "The Slow City",       subtitle: "A framework plan for a post-industrial waterfront", studio: "Urban Design — Alan Plattus",          term: "Spring 2015", file: "/coursework/C05_The_Slow_City.pdf" },
+];
+
+const testimonials = [
+  { quote: "Alex makes buildings that feel like they've always been there — except better.", who: "Mara Iverson", role: "Director, Newport Public Library" },
+  { quote: "A rare architect who can hold the big idea and the half-inch detail in mind at the same time.", who: "Daniel Cho", role: "Developer, LIC Foundry Partners" },
+  { quote: "Our home is calmer than I knew a home could be. Years later we're still finding small gifts in the way it's drawn.", who: "Eli & Renée S.", role: "Casa Verde, Hudson Valley" },
+];
+
+// ─────────────── STYLES (injected once) ─────────────────────────
+const STYLES = `
+  :root { --bg:#f4f2eb; --surface:#e9e6dc; --ink:#0a0a0c; --muted:#5e5d63; --rule:#c8c5b9; }
+  .dark { --bg:#0a0a0c; --surface:#15151a; --ink:#f4f2eb; --muted:#8a8990; --rule:#2a2a30; }
+  html, body { background: var(--bg); color: var(--ink); }
+  html { font-size: 17.5px; }
+  @media (max-width: 640px) { html { font-size: 16.5px; } }
+  body { font-family: 'Inter', system-ui, sans-serif; font-weight: 300; }
+  .serif, h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; font-weight: 300; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  html { scroll-behavior: smooth; }
+  .progress-bar { position: fixed; top:0; left:0; height:2px; background: var(--ink); z-index:100; transition: width 60ms linear; }
+  .cursor-dot, .cursor-ring { position: fixed; pointer-events:none; z-index:9999; border-radius:9999px; mix-blend-mode: difference; transition: transform .12s ease, width .2s ease, height .2s ease, opacity .2s ease; }
+  .cursor-dot { width:6px; height:6px; background:#fff; }
+  .cursor-ring { width:36px; height:36px; border:1px solid #fff; }
+  .cursor-ring.hover { width:64px; height:64px; }
+  @media (max-width: 900px) { .cursor-dot, .cursor-ring { display:none; } }
+  .reveal { opacity:0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.visible { opacity:1; transform: translateY(0); }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .marquee-track { animation: marquee 40s linear infinite; }
+  .ul-link { position: relative; }
+  .ul-link::after { content:""; position:absolute; left:0; right:0; bottom:-2px; height:1px; background: currentColor; transform: scaleX(.4); transform-origin: left; transition: transform .4s ease; }
+  .ul-link:hover::after { transform: scaleX(1); }
+  .card img { transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+  .card:hover img { transform: scale(1.04); }
+  .no-scrollbar::-webkit-scrollbar { display:none; }
+  .no-scrollbar { scrollbar-width: none; }
+  .loader { position: fixed; inset:0; background: var(--bg); color: var(--ink); z-index:200; display:flex; align-items:center; justify-content:center; transition: opacity .8s ease, visibility .8s ease; }
+  .loader.gone { opacity:0; visibility:hidden; }
+  .grain { position: relative; }
+  .grain::before { content:""; position:absolute; inset:0; pointer-events:none; background-image: radial-gradient(rgba(0,0,0,.04) 1px, transparent 1px); background-size:3px 3px; opacity:.35; mix-blend-mode: multiply; }
+  .dark .grain::before { background-image: radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px); mix-blend-mode: screen; }
+  .display { letter-spacing: -0.02em; }
+  ::selection { background: var(--ink); color: var(--bg); }
+  /* Full-screen scroll mode */
+  .fs-scroll { scroll-snap-type: y proximity; scroll-padding-top: 4.5rem; }
+  .fs-scroll section, .fs-scroll header, .fs-scroll footer { scroll-snap-align: start; scroll-snap-stop: normal; min-height: 100vh; }
+  @media (max-height: 700px) { .fs-scroll section, .fs-scroll header, .fs-scroll footer { min-height: auto; } }
+  @media (prefers-reduced-motion: reduce) { .fs-scroll { scroll-snap-type: none; } }
+  /* Side dot navigation */
+  .side-dots { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); z-index: 35; display: flex; flex-direction: column; gap: 14px; }
+  .side-dots button { display: flex; align-items: center; gap: 10px; background: transparent; border: 0; color: var(--muted); cursor: pointer; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; }
+  .side-dots .label { opacity: 0; transform: translateX(8px); transition: opacity .25s ease, transform .25s ease; pointer-events: none; }
+  .side-dots button:hover .label { opacity: 1; transform: translateX(0); }
+  .side-dots .dot { width: 7px; height: 7px; border-radius: 99px; background: transparent; border: 1px solid var(--muted); transition: background .25s ease, transform .25s ease, border-color .25s ease; }
+  .side-dots button.active .dot { background: var(--ink); border-color: var(--ink); transform: scale(1.3); }
+  .side-dots button.active { color: var(--ink); }
+  .side-dots button.active .label { opacity: 1; transform: translateX(0); }
+  @media (max-width: 900px) { .side-dots { display: none; } }
+`;
+
+// ─────────────── HOOKS ──────────────────────────────────────────
+const SECTIONS = [
+  { id: "top",        label: "Home" },
+  { id: "services",   label: "Services" },
+  { id: "work",       label: "Work" },
+  { id: "about",      label: "About" },
+  { id: "experience", label: "Experience" },
+  { id: "coursework", label: "Coursework" },
+  { id: "skills",     label: "Skills" },
+  { id: "contact",    label: "Contact" },
+];
+
+function useFullscreen() {
+  const [on, setOn] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const saved = localStorage.getItem("fsScrollV2");
+    return saved === null ? true : saved === "1";
+  });
+  useEffect(() => {
+    document.documentElement.classList.toggle("fs-scroll", on);
+    try { localStorage.setItem("fsScrollV2", on ? "1" : "0"); } catch {}
+  }, [on]);
+  return [on, () => setOn((v) => !v)];
+}
+
+function useActiveSection() {
+  const [active, setActive] = useState(SECTIONS[0].id);
+  useEffect(() => {
+    const targets = SECTIONS.map((s) => document.getElementById(s.id)).filter(Boolean);
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); }),
+      { threshold: 0, rootMargin: "-40% 0px -55% 0px" }
+    );
+    targets.forEach((t) => io.observe(t));
+    return () => io.disconnect();
+  }, []);
+  return active;
+}
+
+function SideDots({ active }) {
+  const go = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  return (
+    <nav className="side-dots" aria-label="Section navigation">
+      {SECTIONS.map((s) => (
+        <button key={s.id} className={active === s.id ? "active" : ""} onClick={() => go(s.id)} aria-label={s.label}>
+          <span className="label">{s.label}</span>
+          <span className="dot" />
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+function useTheme() {
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === "undefined") return "light";
+    const saved = localStorage.getItem("theme");
+    if (saved) return saved;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    try { localStorage.setItem("theme", theme); } catch {}
+  }, [theme]);
+  return [theme, () => setTheme((t) => (t === "dark" ? "light" : "dark"))];
+}
+
+function useScrollProgress() {
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement;
+      const total = h.scrollHeight - h.clientHeight;
+      setP(total > 0 ? (h.scrollTop / total) * 100 : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return p;
+}
+
+function useReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("visible"); io.unobserve(e.target); } }),
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+}
+
+function useCursor() {
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 900px)").matches) return;
+    const dot = document.createElement("div");
+    const ring = document.createElement("div");
+    dot.className = "cursor-dot";
+    ring.className = "cursor-ring";
+    document.body.appendChild(dot); document.body.appendChild(ring);
+    let x = 0, y = 0, rx = 0, ry = 0, raf;
+    const move = (e) => { x = e.clientX; y = e.clientY; dot.style.transform = `translate(${x - 3}px, ${y - 3}px)`; };
+    const tick = () => { rx += (x - rx) * 0.18; ry += (y - ry) * 0.18; ring.style.transform = `translate(${rx - 18}px, ${ry - 18}px)`; raf = requestAnimationFrame(tick); };
+    const onOver = (e) => { if (e.target.closest("a, button, .card")) ring.classList.add("hover"); else ring.classList.remove("hover"); };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseover", onOver);
+    tick();
+    return () => { dot.remove(); ring.remove(); cancelAnimationFrame(raf); window.removeEventListener("mousemove", move); window.removeEventListener("mouseover", onOver); };
+  }, []);
+}
+
+function useCounter(target, run) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (!run) return;
+    let raf, start = null; const dur = 1400;
+    const tick = (t) => {
+      if (!start) start = t;
+      const p = Math.min((t - start) / dur, 1);
+      setV(Math.round(target * (0.5 - Math.cos(Math.PI * p) / 2)));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, run]);
+  return v;
+}
+
+// ─────────────── COMPONENTS ─────────────────────────────────────
+function Loader({ done }) {
+  return (
+    <div className={`loader ${done ? "gone" : ""}`}>
+      <div className="text-center">
+        <div className="mono text-xs uppercase tracking-[0.4em] mb-4 opacity-60">Studio Marchetti</div>
+        <div className="serif text-5xl md:text-7xl display">{profile.name}</div>
+        <div className="mt-6 mono text-xs opacity-60">Loading…</div>
+      </div>
+    </div>
+  );
+}
+
+function Nav({ theme, toggleTheme, scrolled, fs, toggleFs }) {
+  const [open, setOpen] = useState(false);
+  const items = [["#work", "Work"], ["#about", "About"], ["#services", "Services"], ["#experience", "Experience"], ["#coursework", "Coursework"], ["#contact", "Contact"]];
+  return (
+    <nav className={`fixed top-0 left-0 right-0 z-40 transition ${scrolled ? "backdrop-blur border-b" : ""}`} style={{ borderColor: "var(--rule)" }}>
+      <div className="absolute inset-0 -z-10" style={{ background: scrolled ? "color-mix(in srgb, var(--bg) 80%, transparent)" : "transparent" }} />
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-5 flex items-center justify-between">
+        <a href="#top" className="flex items-baseline gap-3">
+          <span className="serif text-lg">{profile.name}</span>
+          <span className="mono text-[10px] uppercase tracking-widest opacity-50 hidden sm:inline">— {profile.studio}</span>
+        </a>
+        <div className="hidden lg:flex gap-8 text-xs uppercase tracking-widest items-center" style={{ color: "var(--muted)" }}>
+          {items.map(([href, label]) => (
+            <a key={href} href={href} className="ul-link transition">{label}</a>
+          ))}
+          <button onClick={toggleFs} aria-label="Toggle full-screen scroll" title="Full-screen scrolling" className="border px-3 py-1.5 transition hover:bg-[var(--ink)] hover:text-[var(--bg)]" style={{ borderColor: "var(--rule)" }}>
+            {fs ? "▤ Snap" : "▦ Free"}
+          </button>
+          <button onClick={toggleTheme} aria-label="Toggle theme" className="border px-3 py-1.5 transition hover:bg-[var(--ink)] hover:text-[var(--bg)]" style={{ borderColor: "var(--rule)" }}>
+            {theme === "dark" ? "☀ Light" : "☾ Dark"}
+          </button>
+          <a href={profile.cv} download className="border px-3 py-1.5 transition hover:bg-[var(--ink)] hover:text-[var(--bg)]" style={{ borderColor: "var(--rule)" }}>
+            CV ↓
+          </a>
+        </div>
+        <button onClick={() => setOpen(true)} className="lg:hidden mono text-xs uppercase tracking-widest" aria-label="Menu">Menu</button>
+      </div>
+      {open && (
+        <div className="fixed inset-0 z-50" style={{ background: "var(--bg)" }}>
+          <div className="flex justify-between p-6 md:p-10">
+            <span className="serif text-lg">{profile.name}</span>
+            <button onClick={() => setOpen(false)} className="mono text-xs uppercase tracking-widest">Close</button>
+          </div>
+          <div className="px-6 md:px-10 mt-12 flex flex-col gap-6 serif text-4xl">
+            {items.map(([href, label]) => (
+              <a key={href} href={href} onClick={() => setOpen(false)} className="hover:opacity-60">{label}</a>
+            ))}
+          </div>
+          <div className="px-6 md:px-10 mt-12 flex gap-6 mono text-xs uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+            <button onClick={toggleFs}>{fs ? "▤ Snap" : "▦ Free"}</button>
+            <button onClick={toggleTheme}>{theme === "dark" ? "☀ Light" : "☾ Dark"}</button>
+            <a href={profile.cv} download>CV ↓</a>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+function Hero() {
+  return (
+    <header id="top" className="pt-36 md:pt-44 pb-20 md:pb-28 px-6 md:px-10 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-baseline mb-8 mono text-[10px] uppercase tracking-[0.4em] reveal" style={{ color: "var(--muted)" }}>
+          <span>{profile.role} — {profile.studio}</span>
+          <span className="hidden md:inline">{profile.lat} / {profile.lon}</span>
+        </div>
+        <h1 className="serif display text-[14vw] md:text-[10vw] lg:text-[8.5vw] leading-[0.92] reveal">
+          {profile.first}<br />
+          <span style={{ color: "var(--muted)" }}>{profile.last}</span>
+        </h1>
+        <div className="mt-12 md:mt-20 grid md:grid-cols-3 gap-10 reveal">
+          <div className="md:col-span-2 serif text-2xl md:text-3xl leading-snug">{profile.tagline}</div>
+          <div className="md:col-span-1 text-sm leading-relaxed" style={{ color: "var(--muted)" }}>
+            {profile.manifesto}
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 mono text-[11px] uppercase tracking-widest">
+              <a href="#work" className="ul-link">Selected Work →</a>
+              <a href={profile.cv} download className="ul-link">Download CV ↓</a>
+              <a href="#contact" className="ul-link">Contact</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-20 md:mt-28 overflow-hidden border-y py-6" style={{ borderColor: "var(--rule)" }}>
+        <div className="marquee-track flex gap-12 whitespace-nowrap serif text-3xl md:text-5xl" style={{ width: "max-content" }}>
+          {[...Array(2)].flatMap((_, i) =>
+            ["Architecture", "◇", "Interiors", "◇", "Master Planning", "◇", "Adaptive Reuse", "◇", "Brooklyn", "◇", "New York", "◇", "Available 2026", "◇"].map((s, j) => (
+              <span key={`${i}-${j}`} style={{ color: j % 2 ? "var(--muted)" : "var(--ink)" }}>{s}</span>
+            ))
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function Stats() {
+  const ref = useRef(null);
+  const [run, setRun] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setRun(true); io.disconnect(); } }, { threshold: 0.4 });
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <section ref={ref} className="px-6 md:px-10 py-16 md:py-24 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+        {stats.map((s, i) => <Stat key={i} {...s} run={run} />)}
+      </div>
+    </section>
+  );
+}
+function Stat({ n, suffix, label, run }) {
+  const v = useCounter(n, run);
+  return (
+    <div className="reveal">
+      <div className="serif display text-5xl md:text-7xl">{v}{suffix}</div>
+      <div className="mono text-[10px] uppercase tracking-[0.3em] mt-2" style={{ color: "var(--muted)" }}>{label}</div>
+    </div>
+  );
+}
+
+function SectionHeader({ index, kicker, title, sub }) {
+  return (
+    <div className="flex items-baseline justify-between mb-12 md:mb-16 reveal">
+      <div>
+        <div className="mono text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: "var(--muted)" }}>{index} — {kicker}</div>
+        <h2 className="serif display text-4xl md:text-6xl">{title}</h2>
+      </div>
+      {sub && <div className="hidden md:block text-sm max-w-xs text-right" style={{ color: "var(--muted)" }}>{sub}</div>}
+    </div>
+  );
+}
+
+function Services() {
+  return (
+    <section id="services" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto">
+        <SectionHeader index="01" kicker="Services" title="What I do." sub="Four overlapping practices, kept deliberately small." />
+        <div className="grid md:grid-cols-2 gap-x-10 gap-y-12">
+          {services.map((s) => (
+            <div key={s.title} className="border-t pt-6 reveal" style={{ borderColor: "var(--rule)" }}>
+              <div className="flex items-baseline justify-between mb-4">
+                <span className="mono text-xs" style={{ color: "var(--muted)" }}>{s.num}</span>
+                <span className="mono text-[10px] uppercase tracking-widest opacity-50">Service</span>
+              </div>
+              <h3 className="serif text-3xl md:text-4xl mb-4">{s.title}</h3>
+              <p className="text-base leading-relaxed max-w-md" style={{ color: "var(--muted)" }}>{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Work({ onOpen }) {
+  const [filter, setFilter] = useState("All");
+  const filtered = useMemo(() => filter === "All" ? projects : projects.filter((p) => p.type === filter), [filter]);
+  return (
+    <section id="work" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto">
+        <SectionHeader index="02" kicker="Selected Work" title="Built & Becoming." sub={`${projects.length} projects · ${new Set(projects.map((p) => p.type)).size} typologies`} />
+        <div className="flex flex-wrap gap-2 mb-12 reveal">
+          {filters.map((f) => (
+            <button key={f} onClick={() => setFilter(f)}
+              className="mono text-[11px] uppercase tracking-widest px-3 py-1.5 border transition"
+              style={{ borderColor: "var(--rule)", background: filter === f ? "var(--ink)" : "transparent", color: filter === f ? "var(--bg)" : "var(--ink)", opacity: filter === f ? 1 : 0.7 }}>
+              {f}
+            </button>
+          ))}
+        </div>
+        <div className="grid md:grid-cols-2 gap-x-8 gap-y-20">
+          {filtered.map((p, i) => (
+            <article key={p.title}
+                     className={`card cursor-pointer reveal ${i % 4 === 1 || i % 4 === 2 ? "md:mt-16" : ""}`}
+                     onClick={() => onOpen(p)}>
+              <div className="overflow-hidden aspect-[4/3] mb-6" style={{ background: "var(--surface)" }}>
+                <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex items-baseline justify-between mono text-[10px] uppercase tracking-widest mb-2" style={{ color: "var(--muted)" }}>
+                <span>{String(projects.indexOf(p) + 1).padStart(2, "0")} · {p.type}</span>
+                <span>{p.year}</span>
+              </div>
+              <h3 className="serif text-3xl md:text-4xl mb-1">{p.title}</h3>
+              <p className="text-sm" style={{ color: "var(--muted)" }}>{p.location} · {p.size}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Lightbox({ project, onClose }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => { setIdx(0); }, [project]);
+  useEffect(() => {
+    if (!project) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setIdx((i) => (i + 1) % project.images.length);
+      if (e.key === "ArrowLeft")  setIdx((i) => (i - 1 + project.images.length) % project.images.length);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [project, onClose]);
+  if (!project) return null;
+  return (
+    <div className="fixed inset-0 z-50 backdrop-blur-md" style={{ background: "color-mix(in srgb, var(--bg) 90%, black)" }} onClick={onClose}>
+      <div className="absolute top-0 left-0 right-0 flex justify-between p-6 md:p-10 mono text-xs uppercase tracking-widest">
+        <span style={{ color: "var(--muted)" }}>{project.type} · {project.year}</span>
+        <button onClick={onClose} className="ul-link">Close ✕</button>
+      </div>
+      <div className="h-full flex flex-col md:flex-row" onClick={(e) => e.stopPropagation()}>
+        <div className="flex-1 relative flex items-center justify-center px-4 md:px-10 pt-20 md:pt-24 pb-6">
+          <img src={project.images[idx]} alt={project.title} className="max-h-full max-w-full object-contain" />
+          {project.images.length > 1 && (
+            <>
+              <button onClick={() => setIdx((i) => (i - 1 + project.images.length) % project.images.length)}
+                      className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 mono text-xs uppercase tracking-widest hover:opacity-60">← Prev</button>
+              <button onClick={() => setIdx((i) => (i + 1) % project.images.length)}
+                      className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 mono text-xs uppercase tracking-widest hover:opacity-60">Next →</button>
+            </>
+          )}
+        </div>
+        <aside className="md:w-[380px] md:max-w-[40vw] p-6 md:p-10 md:overflow-y-auto border-t md:border-t-0 md:border-l no-scrollbar" style={{ borderColor: "var(--rule)", background: "var(--bg)" }}>
+          <h3 className="serif text-3xl md:text-4xl mb-3">{project.title}</h3>
+          <p className="text-sm mb-8" style={{ color: "var(--muted)" }}>{project.location}</p>
+          <p className="text-base leading-relaxed mb-8">{project.description}</p>
+          <dl className="grid grid-cols-2 gap-y-4 text-sm border-t pt-6" style={{ borderColor: "var(--rule)" }}>
+            <dt className="mono text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Year</dt><dd>{project.year}</dd>
+            <dt className="mono text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Size</dt><dd>{project.size}</dd>
+            <dt className="mono text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Status</dt><dd>{project.status}</dd>
+            <dt className="mono text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>Role</dt><dd>{project.role}</dd>
+          </dl>
+          <div className="mt-8 mono text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>{idx + 1} / {project.images.length}</div>
+        </aside>
+          <div className="mt-20 md:mt-28 overflow-hidden border-y py-6" style={{ borderColor: "var(--rule)" }}>
+            <div className="marquee-track flex gap-12 whitespace-nowrap serif text-3xl md:text-5xl" style={{ width: "max-content" }}>
+              {[...Array(2)].flatMap((_, i) =>
+                ["Architecture", "◇", "Interiors", "◇", "Master Planning", "◇", "Adaptive Reuse", "◇", "Brooklyn", "◇", "New York", "◇", "Available 2026", "◇"].map((s, j) => (
+                  <span key={`${i}-${j}`} style={{ color: j % 2 ? "var(--muted)" : "var(--ink)" }}>{s}</span>
+                ))
+              )}
+            </div>
+          </div>
+        <div className="grid md:grid-cols-3 gap-10">
+          <div className="md:col-span-1 reveal">
+            <div className="aspect-[3/4] overflow-hidden" style={{ background: "var(--bg)" }}>
+              <img src="/portrait.svg" alt={profile.name} className="w-full h-full object-cover" />
+            </div>
+            <p className="mt-4 mono text-[10px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>{profile.name}, {new Date().getFullYear()}</p>
+          </div>
+          <div className="md:col-span-2 space-y-6 text-lg md:text-xl leading-relaxed reveal">
+            {profile.bio.map((p, i) => <p key={i}>{p}</p>)}
+            <div className="pt-6 mt-6 border-t flex flex-wrap gap-x-10 gap-y-4 text-sm" style={{ borderColor: "var(--rule)" }}>
+              <div><div className="mono text-[10px] uppercase tracking-widest opacity-60">Based</div>{profile.location}</div>
+              <div><div className="mono text-[10px] uppercase tracking-widest opacity-60">Languages</div>English, Italian</div>
+              <div><div className="mono text-[10px] uppercase tracking-widest opacity-60">Available</div>2026 commissions</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Process() {
+  return (
+    <section id="process" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto">
+        <SectionHeader index="04" kicker="Process" title="How a project moves." sub="Four phases. The line between them is rarely clean." />
+        <div className="grid md:grid-cols-4 gap-10">
+          {process.map((p) => (
+            <div key={p.step} className="reveal">
+              <div className="serif text-7xl md:text-8xl mb-2" style={{ color: "var(--muted)" }}>{p.step}</div>
+              <h3 className="serif text-2xl mb-3">{p.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--muted)" }}>{p.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Experience() {
+  return (
+    <section id="experience" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto">
+        <SectionHeader index="04" kicker="Experience" title="A working record." />
+        <div className="space-y-12">
+          {experience.map((e) => (
+            <div key={e.firm} className="grid md:grid-cols-4 gap-6 pb-12 border-b last:border-b-0 reveal" style={{ borderColor: "var(--rule)" }}>
+              <div className="md:col-span-1 mono text-xs uppercase tracking-widest" style={{ color: "var(--muted)" }}>{e.years}</div>
+              <div className="md:col-span-3">
+                <h3 className="serif text-2xl md:text-3xl mb-1">{e.role}</h3>
+                <p className="mb-4" style={{ color: "var(--muted)" }}>{e.firm}</p>
+                <p className="leading-relaxed max-w-2xl">{e.summary}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-24 reveal">
+          <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: "var(--muted)" }}>Education & Licensure</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            {education.map((ed) => (
+              <div key={ed.degree} className="border-t pt-4" style={{ borderColor: "var(--rule)" }}>
+                <div className="mono text-xs mb-2" style={{ color: "var(--muted)" }}>{ed.year}</div>
+                <div className="serif text-xl mb-1">{ed.degree}</div>
+                <div className="text-sm" style={{ color: "var(--muted)" }}>{ed.school}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Coursework() {
+  const groups = [];
+  const map = new Map();
+  coursework.forEach((c) => {
+    if (!map.has(c.group)) { map.set(c.group, []); groups.push(c.group); }
+    map.get(c.group).push(c);
+  });
+  return (
+    <section id="coursework" className="px-6 md:px-10 py-16 md:py-20 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-baseline justify-between mb-8 reveal">
+          <div>
+            <div className="mono text-[10px] uppercase tracking-[0.4em] mb-1" style={{ color: "var(--muted)" }}>05 — Coursework</div>
+            <h2 className="serif text-2xl md:text-3xl">Academic studio.</h2>
+          </div>
+          <a href="/coursework/00_Coursework_Index.pdf" download
+             className="mono text-[11px] uppercase tracking-widest ul-link" style={{ color: "var(--muted)" }}>
+            Index (PDF) ↓
+          </a>
+        </div>
+
+        {groups.map((g) => (
+          <div key={g} className="mt-6">
+            <div className="mono text-[10px] uppercase tracking-[0.3em] pb-1 border-b reveal" style={{ color: "var(--muted)", borderColor: "var(--rule)" }}>
+              {g}
+            </div>
+            {map.get(g).map((c) => (
+              <a key={c.code} href={c.file} download
+                 className="card group grid grid-cols-12 gap-3 md:gap-4 py-2.5 border-b items-baseline reveal"
+                 style={{ borderColor: "var(--rule)" }}>
+                <span className="col-span-2 md:col-span-1 mono text-[11px]" style={{ color: "var(--muted)" }}>{c.code}</span>
+                <span className="col-span-10 md:col-span-5 serif text-base md:text-lg leading-tight transition group-hover:opacity-70">
+                  {c.title}<span className="hidden md:inline" style={{ color: "var(--muted)" }}> — <i>{c.subtitle}</i></span>
+                </span>
+                <span className="hidden md:block md:col-span-3 text-xs" style={{ color: "var(--muted)" }}>{c.studio}</span>
+                <span className="col-span-7 md:col-span-2 mono text-[11px]" style={{ color: "var(--muted)" }}>{c.term}</span>
+                <span className="col-span-5 md:col-span-1 text-right mono text-[10px] uppercase tracking-widest">PDF ↓</span>
+              </a>
+            ))}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Skills() {
+  return (
+    <section id="skills" className="px-6 md:px-10 py-24 md:py-36 border-t grain" style={{ borderColor: "var(--rule)", background: "var(--surface)" }}>
+      <div className="max-w-7xl mx-auto">
+        <SectionHeader index="06" kicker="Capabilities" title="Skills & software." />
+        <div className="grid md:grid-cols-3 gap-12">
+          {Object.entries(skills).map(([k, items]) => (
+            <div key={k} className="reveal">
+              <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-6 pb-4 border-b" style={{ borderColor: "var(--rule)", color: "var(--muted)" }}>{k}</h3>
+              <ul className="space-y-3">
+                {items.map((s) => <li key={s}>{s}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Press() {
+  return (
+    <section className="px-6 md:px-10 py-20 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto">
+        <div className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: "var(--muted)" }}>As seen in</div>
+        <div className="flex flex-wrap items-center gap-x-12 gap-y-6 serif text-2xl md:text-3xl" style={{ color: "var(--muted)" }}>
+          {press.map((p, i) => (
+            <span key={p} className="reveal" style={{ transitionDelay: `${i * 60}ms` }}>{p}</span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI((v) => (v + 1) % testimonials.length), 7000);
+    return () => clearInterval(id);
+  }, []);
+  const t = testimonials[i];
+  return (
+    <section className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-5xl mx-auto reveal">
+        <div className="mono text-[10px] uppercase tracking-[0.4em] mb-10" style={{ color: "var(--muted)" }}>07 — Voices</div>
+        <blockquote key={i} className="serif text-3xl md:text-5xl leading-tight">
+          <span style={{ color: "var(--muted)" }}>&ldquo;</span>{t.quote}<span style={{ color: "var(--muted)" }}>&rdquo;</span>
+        </blockquote>
+        <div className="mt-10 flex items-center gap-6">
+          <div>
+            <div className="serif text-lg">{t.who}</div>
+            <div className="text-sm" style={{ color: "var(--muted)" }}>{t.role}</div>
+          </div>
+          <div className="ml-auto flex gap-2">
+            {testimonials.map((_, j) => (
+              <button key={j} onClick={() => setI(j)} aria-label={`Quote ${j + 1}`}
+                      className="w-8 transition" style={{ background: j === i ? "var(--ink)" : "var(--rule)", height: j === i ? 2 : 1 }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Field({ label, value, onChange, type = "text", textarea, required, options, min }) {
+  const cls = "mt-2 w-full bg-transparent border-b py-3 outline-none focus:border-[var(--ink)] transition";
+  const sty = { borderColor: "var(--rule)", color: "var(--ink)" };
+  return (
+    <label className="block">
+      <span className="mono text-[10px] uppercase tracking-[0.4em]" style={{ color: "var(--muted)" }}>{label}{required && " *"}</span>
+      {options ? (
+        <select required={required} value={value} onChange={(e) => onChange(e.target.value)} className={cls} style={sty}>
+          {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        </select>
+      ) : textarea ? (
+        <textarea required={required} value={value} onChange={(e) => onChange(e.target.value)} rows={5} className={`${cls} resize-none`} style={sty} />
+      ) : (
+        <input required={required} type={type} min={min} value={value} onChange={(e) => onChange(e.target.value)} className={cls} style={sty} />
+      )}
+    </label>
+  );
+}
+
+function Contact() {
+  const [mode, setMode] = useState("message"); // 'message' | 'booking'
+  const [form, setForm] = useState({
+    name: "", email: "", subject: "", message: "",
+    type: meetingTypes[0], date: "", time: timeSlots[2], duration: durations[0], notes: "",
+  });
+  const [sent, setSent] = useState(false);
+
+  const today = new Date(); today.setDate(today.getDate() + 1);
+  const minDate = today.toISOString().slice(0, 10);
+
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const onSubmit = (e) => {
+    e.preventDefault();
+    let subj, body;
+    if (mode === "message") {
+      subj = form.subject || "New inquiry from portfolio";
+      body = `From: ${form.name} <${form.email}>\n\n${form.message}`;
+    } else {
+      subj = `Booking request — ${form.type} on ${form.date} at ${form.time}`;
+      body =
+        `Booking request from portfolio site\n` +
+        `\nName:     ${form.name}` +
+        `\nEmail:    ${form.email}` +
+        `\nMeeting:  ${form.type}` +
+        `\nDate:     ${form.date}` +
+        `\nTime:     ${form.time}` +
+        `\nDuration: ${form.duration}` +
+        `\n\nNotes:\n${form.notes || "(none)"}`;
+    }
+    window.location.href = `mailto:${profile.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+    setSent(true);
+  };
+
+  const tabBtn = (key, label) => (
+    <button type="button" onClick={() => { setMode(key); setSent(false); }}
+            className="mono text-[11px] uppercase tracking-widest px-4 py-2 border transition"
+            style={{
+              borderColor: "var(--rule)",
+              background: mode === key ? "var(--ink)" : "transparent",
+              color: mode === key ? "var(--bg)" : "var(--ink)",
+              opacity: mode === key ? 1 : 0.7,
+            }}>
+      {label}
+    </button>
+  );
+
+  return (
+    <section id="contact" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto">
+        <SectionHeader index="07" kicker="Contact" title="Let's begin." sub="Currently accepting commissions for 2026 — 2027." />
+        <div className="grid md:grid-cols-5 gap-12 md:gap-20">
+          <div className="md:col-span-2 space-y-8 reveal">
+            <div>
+              <div className="mono text-[10px] uppercase tracking-[0.4em] mb-2" style={{ color: "var(--muted)" }}>Email</div>
+              <a href={`mailto:${profile.email}`} className="serif text-2xl ul-link">{profile.email}</a>
+            </div>
+            <div>
+              <div className="mono text-[10px] uppercase tracking-[0.4em] mb-2" style={{ color: "var(--muted)" }}>Phone</div>
+              <a href={`tel:${profile.phone}`} className="serif text-2xl ul-link">{profile.phone}</a>
+            </div>
+            <div>
+              <div className="mono text-[10px] uppercase tracking-[0.4em] mb-2" style={{ color: "var(--muted)" }}>Studio</div>
+              <p className="serif text-xl">{profile.studio}<br />{profile.location}</p>
+            </div>
+            <div>
+              <div className="mono text-[10px] uppercase tracking-[0.4em] mb-2" style={{ color: "var(--muted)" }}>Schedule directly</div>
+              <a href={profile.scheduler} target="_blank" rel="noreferrer" className="serif text-xl ul-link">Open calendar →</a>
+            </div>
+            <div className="flex flex-wrap gap-x-6 gap-y-3 mono text-[11px] uppercase tracking-widest" style={{ color: "var(--muted)" }}>
+              <a href={profile.social.linkedin} className="ul-link">LinkedIn</a>
+              <a href={profile.social.instagram} className="ul-link">Instagram</a>
+              <a href={profile.social.are_na} className="ul-link">Are.na</a>
+              <a href={profile.cv} download className="ul-link">CV ↓</a>
+            </div>
+          </div>
+
+          <form onSubmit={onSubmit} className="md:col-span-3 space-y-6 reveal">
+            <div className="flex gap-2 mb-2">
+              {tabBtn("message", "Send a message")}
+              {tabBtn("booking", "Book a meeting")}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <Field label="Name"  value={form.name}  onChange={set("name")}  required />
+              <Field label="Email" type="email" value={form.email} onChange={set("email")} required />
+            </div>
+
+            {mode === "message" ? (
+              <>
+                <Field label="Subject" value={form.subject} onChange={set("subject")} />
+                <Field label="Message" value={form.message} onChange={set("message")} textarea required />
+              </>
+            ) : (
+              <>
+                <Field label="Meeting type" value={form.type} onChange={set("type")} options={meetingTypes} required />
+                <div className="grid md:grid-cols-3 gap-6">
+                  <Field label="Preferred date" type="date" value={form.date} onChange={set("date")} min={minDate} required />
+                  <Field label="Preferred time" value={form.time} onChange={set("time")} options={timeSlots} required />
+                  <Field label="Duration" value={form.duration} onChange={set("duration")} options={durations} required />
+                </div>
+                <Field label="Notes (optional)" value={form.notes} onChange={set("notes")} textarea />
+              </>
+            )}
+
+            <div className="flex flex-wrap items-center gap-6 pt-2">
+              <button type="submit" className="border px-6 py-3 mono text-xs uppercase tracking-widest hover:bg-[var(--ink)] hover:text-[var(--bg)] transition" style={{ borderColor: "var(--ink)" }}>
+                {mode === "message" ? "Send Message →" : "Request Meeting →"}
+              </button>
+              <a href={profile.scheduler} target="_blank" rel="noreferrer" className="mono text-[11px] uppercase tracking-widest ul-link" style={{ color: "var(--muted)" }}>
+                Or schedule directly →
+              </a>
+              {sent && <span className="mono text-xs" style={{ color: "var(--muted)" }}>Opening your mail client…</span>}
+            </div>
+            <p className="mono text-[10px] uppercase tracking-widest opacity-60">
+              Submitting opens your default email client with this {mode === "booking" ? "booking request" : "message"} pre-filled.
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Newsletter() {
+  const [email, setEmail] = useState("");
+  const [done, setDone] = useState(false);
+  const sub = (e) => { e.preventDefault(); setDone(true); setEmail(""); };
+  return (
+    <section className="px-6 md:px-10 py-20 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-end">
+        <div>
+          <div className="mono text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: "var(--muted)" }}>Newsletter</div>
+          <h3 className="serif text-3xl md:text-5xl leading-tight">Quarterly notes on new work, books, and small obsessions.</h3>
+        </div>
+        <form onSubmit={sub} className="flex border-b" style={{ borderColor: "var(--ink)" }}>
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com"
+                 className="flex-1 bg-transparent py-3 outline-none mono text-sm" style={{ color: "var(--ink)" }} />
+          <button className="mono text-xs uppercase tracking-widest px-4">Subscribe →</button>
+        </form>
+        {done && <p className="mono text-[10px] uppercase tracking-widest md:col-start-2" style={{ color: "var(--muted)" }}>Thanks — you're on the list.</p>}
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="px-6 md:px-10 py-16 border-t mono text-xs" style={{ borderColor: "var(--rule)", color: "var(--muted)" }}>
+      <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8 mb-12">
+        <div className="md:col-span-2">
+          <div className="serif text-2xl mb-2" style={{ color: "var(--ink)" }}>{profile.name}</div>
+          <p className="max-w-sm">{profile.studio}, an architecture practice in {profile.location} working across residential, cultural, and adaptive-reuse projects.</p>
+        </div>
+        <div>
+          <div className="uppercase tracking-widest mb-3" style={{ color: "var(--ink)" }}>Site</div>
+          <ul className="space-y-2">
+            <li><a href="#work" className="ul-link">Work</a></li>
+            <li><a href="#about" className="ul-link">About</a></li>
+            <li><a href="#services" className="ul-link">Services</a></li>
+            <li><a href="#contact" className="ul-link">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <div className="uppercase tracking-widest mb-3" style={{ color: "var(--ink)" }}>Elsewhere</div>
+          <ul className="space-y-2">
+            <li><a href={profile.social.linkedin} className="ul-link">LinkedIn</a></li>
+            <li><a href={profile.social.instagram} className="ul-link">Instagram</a></li>
+            <li><a href={profile.social.are_na} className="ul-link">Are.na</a></li>
+            <li><a href={profile.cv} download className="ul-link">CV (PDF)</a></li>
+          </ul>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-2 pt-6 border-t uppercase tracking-widest" style={{ borderColor: "var(--rule)" }}>
+        <span>© {new Date().getFullYear()} {profile.name} · Made with care</span>
+        <a href="#top" className="ul-link">Back to top ↑</a>
+      </div>
+    </footer>
+  );
+}
+
+function BackToTop({ visible }) {
+  if (!visible) return null;
+  return (
+    <a href="#top"
+       className="fixed bottom-6 right-6 z-30 mono text-[10px] uppercase tracking-widest border px-3 py-2 backdrop-blur transition hover:bg-[var(--ink)] hover:text-[var(--bg)]"
+       style={{ borderColor: "var(--rule)", background: "color-mix(in srgb, var(--bg) 70%, transparent)" }}>
+      ↑ Top
+    </a>
+  );
+}
+
+// ─────────────── ROOT ──────────────────────────────────────────
+export default function Portfolio() {
+  const [theme, toggleTheme] = useTheme();
+  const [fs, toggleFs] = useFullscreen();
+  const activeSection = useActiveSection();
+  const [loading, setLoading] = useState(true);
+  const [active, setActive] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [showTop, setShowTop] = useState(false);
+  const progress = useScrollProgress();
+  useReveal();
+  useCursor();
+
+  // Inject styles once
+  useEffect(() => {
+    if (document.getElementById("__portfolio_styles")) return;
+    const tag = document.createElement("style");
+    tag.id = "__portfolio_styles";
+    tag.textContent = STYLES;
+    document.head.appendChild(tag);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 40);
+      setShowTop(window.scrollY > 800);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <>
+      <Loader done={!loading} />
+      <div className="progress-bar" style={{ width: `${progress}%` }} />
+      <Nav theme={theme} toggleTheme={toggleTheme} scrolled={scrolled} fs={fs} toggleFs={toggleFs} />
+      <SideDots active={activeSection} />
+      <main>
+        <Hero />
+        <Services />
+        <Work onOpen={setActive} />
+        <About />
+        <Experience />
+        <Coursework />
+        <Skills />
+        <Contact />
+      </main>
+      <Footer />
+      <Lightbox project={active} onClose={() => setActive(null)} />
+      <BackToTop visible={showTop} />
+    </>
+  );
+}
