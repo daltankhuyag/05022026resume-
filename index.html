@@ -280,9 +280,18 @@
     ];
 
     const experience = [
-      { role: "Senior Architect, Founder", firm: "Classic Stone", years: "2022 — Present", summary: "Founded a small practice focused on residential and cultural commissions across the Northeast. Lead designer on every project; manage clients, consultants, and CA." },
-      { role: "Project Architect", firm: "Olson Kundig (Associate)", years: "2018 — 2022", summary: "Led a 14,000 sf coastal public library and three single-family residences from SD through CA. Managed teams of four to six." },
-      { role: "Architectural Designer", firm: "BIG — Bjarke Ingels Group", years: "2015 — 2018", summary: "Contributed to early-stage concept and competition entries on cultural and mixed-use projects in New York and Copenhagen." },
+      {
+        role: "Project | Field Superintendent",
+        firm: "HR Developers LLC | McLean, VA",
+        years: "2021 — 2025",
+        summary: "Oversaw on-site construction activities to keep residential projects safe, on schedule, within budget, and aligned with required quality standards.",
+      },
+      {
+        role: "Shop Manager",
+        firm: "Luxury Stone Craft | Chantilly, VA",
+        years: "2016 — 2019",
+        summary: "Oversaw daily stone fabrication shop operations with a focus on production accuracy, efficiency, quality control, and timely delivery.",
+      },
     ];
 
     const education = [
@@ -791,6 +800,13 @@
                     <h3 className="serif text-2xl md:text-3xl mb-1">{e.role}</h3>
                     <p className="mb-4" style={{ color: 'var(--muted)' }}>{e.firm}</p>
                     <p className="leading-relaxed max-w-2xl">{e.summary}</p>
+                    {e.details?.length ? (
+                      <ul className="mt-4 max-w-3xl space-y-2 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
+                        {e.details.map((detail) => (
+                          <li key={detail}>{detail}</li>
+                        ))}
+                      </ul>
+                    ) : null}
                   </div>
                 </div>
               ))}
