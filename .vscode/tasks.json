@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run resume site",
+			"type": "shell",
+			"command": "d:\\Documents\\GitHub\\Resume-\\Claude\\Projects\\Resume\\05022026resume-\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"http.server",
+				"8000"
+			],
+			"isBackground": true,
+			"group": "build"
+		}
+	]
+}
