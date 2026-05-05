@@ -204,10 +204,9 @@
     ];
 
     const services = [
-      { num: "01", title: "Architecture", body: "Single-family homes, civic and cultural buildings, and small-to-mid commercial work, taken from first sketch to final inspection." },
-      { num: "02", title: "Interiors",    body: "Bespoke interiors as rigorous as the architecture — millwork, lighting, and materiality detailed in-house." },
-      { num: "03", title: "Master Planning", body: "Feasibility studies and framework plans for waterfronts, campuses, and small downtowns. Clear diagrams, honest constraints." },
-      { num: "04", title: "Adaptive Reuse", body: "Reading what a building wants to become next — preserving structure and memory while making space for contemporary life." },
+      { num: "01", title: "Architecture design | Residential", body: "Single-family homes, taken from first sketch to final inspection." },
+      { num: "02", title: "Project Manager | Residential",    body: "Project Manager responsible for overseeing all phases of a single-family home construction project, ensuring quality, budget control, and timely completion." },
+      { num: "03", title: "Superintendent | Residential", body: "Residential Superintendent responsible for managing day-to-day construction activities, coordinating trades, and ensuring work is completed safely, on schedule, and to quality standards." },
     ];
 
     const process = [
@@ -217,66 +216,46 @@
       { step: "IV", title: "Build",  body: "Construction administration, weekly site walks, and shop drawing review. The building gets made the way it was drawn." },
     ];
 
-    const filters = ["All", "Residential", "Cultural / Public", "Adaptive Reuse", "Public Space", "Commercial", "Urban Design"];
+    const filters = ["All", "Residential",  "Commercial"];
 
     const projects = [
       {
         title: "919 Edgewood str,Arlington,VA", type: "Residential", year: "2024", location: "Arlington,VA",
         description: "A 6,732 sf family home built.",
-        size: "6,732sf", status: "Completed", role: "Project Architect",
+        size: "6,732sf", status: "Completed", role: "Project Manager (with HR Developers)",
         images: [
-          "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80",
-          "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=80",
-          "https://images.unsplash.com/photo-1600573472556-e636c2acda88?w=1600&q=80",
+          "919-n-edgewood-image01.jpg",
+          "919-n-edgewood-image02.jpg",
         ],
       },
       {
-        title: "Coastal Library", type: "Cultural / Public", year: "2024", location: "Newport, RI",
-        description: "A 14,000 sf public library on a working harbor. Cedar-clad reading rooms cantilever toward the water; a central oculus draws daylight to the children's wing below.",
-        size: "14,000 sf", status: "Completed", role: "Project Architect (with Olson Kundig)",
+        title: "4192 39th street north, Arlington, VA", type: "Reisdential", year: "2024", location: "Arlington, VA",
+        description: "A 6,732 sf family home built.",
+        size: "6,732 sf", status: "Completed", role: "Project Manager (with HR Developers)",
         images: [
-          "https://images.unsplash.com/photo-1481253127861-534498168948?w=1600&q=80",
-          "https://images.unsplash.com/photo-1568667256549-094345857637?w=1600&q=80",
-          "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1600&q=80",
+          "4192-39th-image01.jpg",
+          "4192-39th-image02.jpg",
         ],
       },
       {
-        title: "The Foundry", type: "Adaptive Reuse", year: "2023", location: "Long Island City, NY",
-        description: "Conversion of a 1920s iron foundry into mixed-use studios and a ground-floor café. Existing trusses and brick were retained; new insertions are deliberately legible as contemporary additions.",
-        size: "38,000 sf", status: "Completed", role: "Architect of Record",
+        title: "5900 Calla Dr, MClean, VA", type: "Residential", year: "2024", location: "Arlington, VA",
+        description: "A 7,450 sf family home built.",
+        size: "7,450 sf", status: "Completed", role: "Project Manager (with HR Developers)",
         images: [
-          "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=80",
-          "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=80",
-          "https://images.unsplash.com/photo-1564540583246-934409427776?w=1600&q=80",
+          "5900-01.jpg",
+          "5900-02.jpg",
         ],
       },
       {
-        title: "Park Pavilion", type: "Public Space", year: "2023", location: "Newark, NJ",
-        description: "An open-air community pavilion serving a neighborhood farmers' market and weekend events. A folded steel roof shelters a flexible 1,800 sf platform.",
-        size: "1,800 sf", status: "Completed", role: "Architect",
+        title: "650 n jackson st arlington va 22201", type: "Residential", year: "2024", location: "Arlington,VA",
+        description: "A 6,352 sf family home built.",
+        size: "6,352 sf", status: "Completed", role: "Project Manager (with HR Developers)",
         images: [
-          "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1600&q=80",
-          "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1600&q=80",
+            "650-Jacksonstr-image01.jpg",
+            "650-Jacksonstr-image02.jpg",
         ],
       },
-      {
-        title: "Atelier Tower", type: "Commercial", year: "2022", location: "Queens, NY",
-        description: "A six-story creative workspace for a small advertising firm. Operable façade panels and shared terraces on every floor extend the workday outdoors.",
-        size: "22,000 sf", status: "Completed", role: "Project Architect",
-        images: [
-          "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1600&q=80",
-          "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80",
-        ],
-      },
-      {
-        title: "Riverwalk Master Plan", type: "Urban Design", year: "2021", location: "Troy, NY",
-        description: "A two-mile waterfront framework knitting together three former industrial parcels with public promenades, housing, and a flood-resilient edge.",
-        size: "47 acres", status: "Adopted by City Council", role: "Lead Designer",
-        images: [
-          "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1600&q=80",
-          "https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=1600&q=80",
-        ],
-      },
+    
     ];
 
     const experience = [
