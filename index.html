@@ -165,23 +165,24 @@
       role: "Architect",
       studio: "Classic Stone",
       location: "Arlington,VA",
-      lat: "40.6782°N",
-      lon: "73.9442°W",
+      lat: "38.88 N",
+      lon: "77.08 W",
       tagline: "Designing thoughtful spaces at the intersection of form, function, and place.",
       manifesto: "A practice grounded in restraint — careful proportions, honest materials, and how light moves through a room over the course of a day.",
       bio: [
         "My name is ALTANKHUYAG Dash, and I’m the founder of Classic Stone. I’ve been working in the construction industry since 2015 and currently live in Arlington, Virginia with my family. Over the years, I had the opportunity to work with HR Developers, a respected custom home builder in the area. Through this experience, I gained valuable knowledge about single-family home construction in Virginia.",
         "I’ve always been inspired by the design and craftsmanship of custom homes, and I’ve had the privilege of being involved in many beautiful projects. My dream is to build homes that are not only visually appealing but also functional — where every square foot, no matter how small, is thoughtfully designed and efficiently used.",
       ],
-      email: "CLASSICSTONEVA@GMAIL.COM",
+      email: "classicstoneva@gmail.com",
       phone: "+1 (202)-227-0788",
       social: {
-        linkedin: "https://linkedin.com/in/alexmarchetti",
-        instagram: "https://instagram.com/marchetti.studio",
+          linkedin: "https://www.instagram.com/classicstone_va/",
+          instagram: "https://www.instagram.com/classicstone_va/",
+          are_na: "https://www.instagram.com/classicstone_va/",
       },
       cv: "Altankhuyag_Dash_CV.pdf",
       portrait: "portrait.png",
-      scheduler: "https://calendly.com/alexmarchetti/intro",   // replace with your real scheduling link
+      scheduler: "mailto:classicstoneva@gmail.com?subject=Schedule%20Request",
     };
 
     const meetingTypes = [
@@ -281,8 +282,8 @@
 
     const skills = {
       Design: ["Concept & Schematic Design", "Design Development", "Construction Documents", "Construction Administration", "Sustainable & Passive House Design"],
-      Software: ["Revit", "AutoCAD", "Rhino + Grasshopper", "SketchUp", "V-Ray", "Enscape", "Adobe Creative Suite", "Lumion"],
-      Other: ["Hand drafting & sketching", "Physical model-making", "Permitting & zoning (NYC DOB)", "Specification writing (CSI MasterFormat)"],
+      Software: ["Revit", "AutoCAD", "SketchUp", "Adobe Creative Suite", "Lumion"],
+      Other: ["Hand drafting & sketching", "Physical model-making", "Permitting & Construction documenting", "Specification writing (CSI MasterFormat)"],
     };
     const coursework = [
       { code: "C01", group: "Northern Virginia Community College · Architecture Technology", title: "Wood Construction Study", subtitle: "Residential wood construction coursework PDF", studio: "Wood course", term: "2021-2024", file: "coursework/C01_Wood_NOVA_course.pdf" },
@@ -595,7 +596,7 @@
       return (
         <section id="services" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: 'var(--rule)' }}>
           <div className="max-w-7xl mx-auto">
-            <SectionHeader index="01" kicker="Services" title="What I do." sub="Four overlapping practices, kept deliberately small." />
+            <SectionHeader index="01" kicker="Services" title="What I do." />
             <div className="grid md:grid-cols-2 gap-x-10 gap-y-12">
               {services.map((s) => (
                 <div key={s.title} className="border-t pt-6 reveal" style={{ borderColor: 'var(--rule)' }}>
@@ -723,7 +724,7 @@
                 {profile.bio.map((p, i) => <p key={i}>{p}</p>)}
                 <div className="pt-6 mt-6 border-t flex flex-wrap gap-x-10 gap-y-4 text-sm" style={{ borderColor: 'var(--rule)' }}>
                   <div><div className="mono text-[10px] uppercase tracking-widest opacity-60">Based</div>{profile.location}</div>
-                  <div><div className="mono text-[10px] uppercase tracking-widest opacity-60">Languages</div>English, Italian</div>
+                  <div><div className="mono text-[10px] uppercase tracking-widest opacity-60">Languages</div>English, Mongolian, Japanese</div>
                   <div><div className="mono text-[10px] uppercase tracking-widest opacity-60">Available</div>2026 commissions</div>
                 </div>
               </div>
@@ -957,7 +958,7 @@
       return (
         <section id="contact" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: 'var(--rule)' }}>
           <div className="max-w-7xl mx-auto">
-            <SectionHeader index="07" kicker="Contact" title="Let's begin." sub="Currently accepting commissions for 2026 — 2027." />
+            <SectionHeader index="07" kicker="Contact" title="Let's begin." />
 
             <div className="grid md:grid-cols-5 gap-12 md:gap-20">
               <div className="md:col-span-2 space-y-8 reveal">
@@ -975,10 +976,10 @@
                 </div>
                 <div>
                   <div className="mono text-[10px] uppercase tracking-[0.4em] mb-2" style={{ color: 'var(--muted)' }}>Schedule directly</div>
-                  <a href={profile.scheduler} target="_blank" rel="noreferrer" className="serif text-xl ul-link">Open calendar →</a>
+                  <a href={profile.scheduler} className="serif text-xl ul-link">Email to schedule →</a>
                 </div>
                 <div className="flex flex-wrap gap-x-6 gap-y-3 mono text-[11px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
-                  <a href={profile.social.instagram} className="https://www.instagram.com/classicstone_va/">Instagram</a>
+                  <a href={profile.social.instagram} target="_blank" rel="noreferrer" className="ul-link">Instagram</a>
                   <a href={profile.cv} download className="ul-link">CV ↓</a>
                 </div>
               </div>
@@ -1015,8 +1016,8 @@
                   <button type="submit" className="border px-6 py-3 mono text-xs uppercase tracking-widest hover:bg-[var(--ink)] hover:text-[var(--bg)] transition" style={{ borderColor: 'var(--ink)' }}>
                     {mode === 'message' ? 'Send Message →' : 'Request Meeting →'}
                   </button>
-                  <a href={profile.scheduler} target="_blank" rel="noreferrer" className="mono text-[11px] uppercase tracking-widest ul-link" style={{ color: 'var(--muted)' }}>
-                    Or schedule directly →
+                  <a href={profile.scheduler} className="mono text-[11px] uppercase tracking-widest ul-link" style={{ color: 'var(--muted)' }}>
+                    Or email directly →
                   </a>
                   {sent && <span className="mono text-xs" style={{ color: 'var(--muted)' }}>Opening your mail client…</span>}
                 </div>
@@ -1093,9 +1094,7 @@
             <div>
               <div className="uppercase tracking-widest mb-3" style={{ color: 'var(--ink)' }}>Elsewhere</div>
               <ul className="space-y-2">
-                <li><a href={profile.social.linkedin} className="ul-link">LinkedIn</a></li>
-                <li><a href={profile.social.instagram} className="ul-link">Instagram</a></li>
-                <li><a href={profile.social.are_na} className="ul-link">Are.na</a></li>
+                <li><a href={profile.social.instagram} target="_blank" rel="noreferrer" className="https://www.instagram.com/classicstone_va/">Instagram</a></li>
                 <li><a href={profile.cv} download className="ul-link">CV (PDF)</a></li>
               </ul>
             </div>
