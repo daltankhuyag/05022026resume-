@@ -13,6 +13,10 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
 
   <!-- Tailwind via CDN with dark mode = class -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -278,6 +282,29 @@
       { degree: "Architecture Technology A.A.S", school: "NOVA Community College", },
       { degree: "Architecture degree (Currently)", school: "Art of Academy University, California", },
       { degree: "Trade finance (Completed)", school: "Chinese Culture University, Taipei Taiwan", },
+    ];
+
+    const certifications = [
+      { title: "Predesign Planning Part 1", issuer: "NCARB", year: "2022", file: "Certification/Predesign Part 01.pdf" },
+      { title: "Predesign Planning Part 2: Values and Architecture", issuer: "NCARB", year: "2022", file: "Certification/68233_certificate_277.pdf" },
+      { title: "Predesign Planning Part 3: Project Planning", issuer: "NCARB", year: "2022", file: "Certification/68233_certificate_306 (1).pdf" },
+      { title: "Predesign Planning Part 4: Publications and Records", issuer: "NCARB", year: "2023", file: "Certification/68233_certificate_307.pdf" },
+      { title: "Predesign Planning Part 5: Diagnostic Interviews", issuer: "NCARB", year: "2023", file: "Certification/68233_certificate_308.pdf" },
+      { title: "NCARB certificate record", issuer: "NCARB", file: "Certification/NC-EN-NCARB04602a-0520.pdf" },
+      { title: "Natural Stone Principles", issuer: "Natural Stone Institute", year: "2021", file: "Certification/certificate-1.pdf" },
+      { title: "Designer Talk: Using Natural Stone in Residential Architecture", issuer: "Natural Stone Institute", year: "2021", file: "Certification/certificate.pdf" },
+      { title: "Project Management Foundations: Schedules", issuer: "LinkedIn Learning", year: "2025", file: "Certification/CertificateOfCompletion_Project Management Foundations Schedules.pdf" },
+      { title: "Constructability Series: Structural System Concept Design (Part 1)", issuer: "American Concrete Institute", year: "2026", file: "Certification/CertificateOfCompletion_Structuring a Construction Loan.pdf" },
+      { title: "Constructability Series: Structural System Concept Design (Part 2)", issuer: "American Concrete Institute", year: "2026", file: "Certification/Altankhuyag Dash-Transcript-Constructability Series Structural System Concept Design (Part 2).pdf" },
+      { title: "Contractor's Guide: Formwork", issuer: "American Concrete Institute", year: "2026", file: "Certification/Altankhuyag Dash-Transcript-Contractor's Guide Formwork.pdf" },
+      { title: "ACI 314R-16 Guide to Simplified Design of Reinforced Concrete Buildings", issuer: "American Concrete Institute", year: "2025", file: "Certification/Altankhuyag Dash-Transcript-ACI 314R-16 Guide to Simplified Design of Reinforced Concrete Buildings.pdf" },
+      { title: "Design and Detailing of Steel Reinforced Concrete Structural Members (Part 1)", issuer: "American Concrete Institute", year: "2026", file: "Certification/Altankhuyag Dash-Transcript-Design and D ... 52-20.pdf" },
+      { title: "Design and Detailing of Steel Reinforced Concrete Structural Members (Part 2)", issuer: "American Concrete Institute", year: "2026", file: "Certification/Altankhuyag Dash-Transcript-Design and D ... 04-35.pdf" },
+      { title: "Detailing Considerations for Off-Site Building Components", issuer: "Professional coursework", year: "2025", file: "Certification/Detailing_Considerations_for_Off-Site_Building_Components.pdf" },
+      { title: "Framing and Unit Layout Efficiencies in Multi-Story Wood Structures", issuer: "Wood Products Council", file: "Certification/Framing and Unit Layout Efficiencies in Multi-Story Wood Structures - Holman, Randall.pdf" },
+      { title: "High-Performance Envelopes in Wood Construction", issuer: "Professional coursework", year: "2025", file: "Certification/High-Performance_Envelopes_in_Wood_Construction.pdf" },
+      { title: "Introduction to Wood: Structural Gravity Framing Design", issuer: "Professional coursework", year: "2025", file: "Certification/Introduction_to_Wood_Structural_Gravity_Framing.pdf" },
+      { title: "Completion Certificate", issuer: "Professional coursework", file: "Certification/Completion Certificate.pdf" },
     ];
 
     const skills = {
@@ -708,6 +735,168 @@
       );
     }
 
+    function PdfViewer({ item, onClose }) {
+      const pdfUrl = item?.file ? encodeURI(item.file) : '';
+      const canvasRef = useRef(null);
+      const viewerRef = useRef(null);
+      const [pdfDoc, setPdfDoc] = useState(null);
+      const [pageNumber, setPageNumber] = useState(1);
+      const [pageCount, setPageCount] = useState(0);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState('');
+      const [renderTick, setRenderTick] = useState(0);
+
+      useEffect(() => {
+        if (!item) return;
+        const onKey = (e) => {
+          if (e.key === 'Escape') onClose();
+        };
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('keydown', onKey);
+        return () => {
+          window.removeEventListener('keydown', onKey);
+          document.body.style.overflow = '';
+        };
+      }, [item, onClose]);
+
+      useEffect(() => {
+        if (!item || !pdfUrl) return;
+        let cancelled = false;
+        const loadingTask = pdfjsLib.getDocument(pdfUrl);
+        setLoading(true);
+        setError('');
+        setPdfDoc(null);
+        setPageNumber(1);
+        setPageCount(0);
+
+        loadingTask.promise
+          .then((pdf) => {
+            if (cancelled) {
+              pdf.destroy();
+              return;
+            }
+            setPdfDoc(pdf);
+            setPageCount(pdf.numPages);
+          })
+          .catch(() => {
+            if (!cancelled) setError('Unable to render this PDF in the viewer.');
+          })
+          .finally(() => {
+            if (!cancelled) setLoading(false);
+          });
+
+        return () => {
+          cancelled = true;
+          loadingTask.destroy();
+        };
+      }, [item, pdfUrl]);
+
+      useEffect(() => {
+        if (!item) return;
+        const onResize = () => setRenderTick((value) => value + 1);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+      }, [item]);
+
+      useEffect(() => {
+        if (!pdfDoc || !canvasRef.current || !viewerRef.current) return;
+        let cancelled = false;
+        let renderTask = null;
+
+        setLoading(true);
+        setError('');
+
+        pdfDoc.getPage(pageNumber)
+          .then((page) => {
+            if (cancelled) return;
+            const containerWidth = Math.max(viewerRef.current.clientWidth - 32, 320);
+            const baseViewport = page.getViewport({ scale: 1 });
+            const scale = containerWidth / baseViewport.width;
+            const viewport = page.getViewport({ scale });
+            const canvas = canvasRef.current;
+            const context = canvas.getContext('2d');
+            const pixelRatio = window.devicePixelRatio || 1;
+
+            canvas.width = Math.floor(viewport.width * pixelRatio);
+            canvas.height = Math.floor(viewport.height * pixelRatio);
+            canvas.style.width = `${viewport.width}px`;
+            canvas.style.height = `${viewport.height}px`;
+            context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+            renderTask = page.render({
+              canvasContext: context,
+              viewport,
+            });
+
+            return renderTask.promise;
+          })
+          .catch((err) => {
+            if (err?.name === 'RenderingCancelledException' || cancelled) return;
+            setError('Unable to render this PDF page.');
+          })
+          .finally(() => {
+            if (!cancelled) setLoading(false);
+          });
+
+        return () => {
+          cancelled = true;
+          if (renderTask) renderTask.cancel();
+        };
+      }, [pdfDoc, pageNumber, renderTick]);
+
+      if (!item) return null;
+      return (
+        <div className="fixed inset-0 z-50 backdrop-blur-md" style={{ background: 'color-mix(in srgb, var(--bg) 90%, black)' }} onClick={onClose}>
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between gap-4 p-6 md:p-10 mono text-xs uppercase tracking-widest">
+            <div style={{ color: 'var(--muted)' }}>{item.issuer}{item.year ? ` · ${item.year}` : ''}</div>
+            <div className="flex items-center gap-4">
+              <a href={pdfUrl} target="_blank" rel="noreferrer" className="ul-link">Open ↗</a>
+              <a href={pdfUrl} download className="ul-link">Download ↓</a>
+              <button onClick={onClose} className="ul-link">Close ✕</button>
+            </div>
+          </div>
+          <div className="h-full pt-24 md:pt-28 pb-6 px-4 md:px-10" onClick={(e) => e.stopPropagation()}>
+            <div className="h-full border" style={{ borderColor: 'var(--rule)', background: 'var(--bg)' }}>
+              <div className="flex items-center justify-between gap-4 px-5 py-4 border-b" style={{ borderColor: 'var(--rule)' }}>
+                <div>
+                  <h3 className="serif text-2xl md:text-3xl">{item.title}</h3>
+                  <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>In-page PDF viewer</p>
+                </div>
+                <div className="flex items-center gap-3 mono text-[10px] uppercase tracking-widest">
+                  <button type="button" onClick={() => setPageNumber((page) => Math.max(1, page - 1))} disabled={pageNumber <= 1} className="hover:opacity-60 transition disabled:opacity-30">
+                    Prev
+                  </button>
+                  <span style={{ color: 'var(--muted)' }}>{pageCount ? `${pageNumber} / ${pageCount}` : 'Loading'}</span>
+                  <button type="button" onClick={() => setPageNumber((page) => Math.min(pageCount, page + 1))} disabled={!pageCount || pageNumber >= pageCount} className="hover:opacity-60 transition disabled:opacity-30">
+                    Next
+                  </button>
+                </div>
+              </div>
+              <div ref={viewerRef} className="h-[calc(100%-5rem)] overflow-auto no-scrollbar px-4 py-5 flex justify-center" style={{ background: 'color-mix(in srgb, var(--surface) 45%, white)' }}>
+                <div className="relative min-h-full w-full flex justify-center">
+                  {loading ? (
+                    <div className="absolute inset-0 flex items-center justify-center mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+                      Rendering PDF...
+                    </div>
+                  ) : null}
+                  {error ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center px-6">
+                      <p className="text-sm" style={{ color: 'var(--muted)' }}>{error}</p>
+                      <div className="flex items-center gap-4 mono text-[10px] uppercase tracking-widest">
+                        <a href={pdfUrl} target="_blank" rel="noreferrer" className="ul-link">Open ↗</a>
+                        <a href={pdfUrl} download className="ul-link">Download ↓</a>
+                      </div>
+                    </div>
+                  ) : null}
+                  <canvas ref={canvasRef} className={error ? 'hidden' : 'shadow-[0_18px_48px_rgba(0,0,0,0.12)] max-w-full'} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     function About() {
       return (
         <section id="about" className="px-6 md:px-10 py-24 md:py-36 border-t grain" style={{ borderColor: 'var(--rule)', background: 'var(--surface)' }}>
@@ -753,7 +942,7 @@
       );
     }
 
-    function Experience() {
+    function Experience({ onOpenPdf }) {
       return (
         <section id="experience" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: 'var(--rule)' }}>
           <div className="max-w-7xl mx-auto">
@@ -778,16 +967,57 @@
               ))}
             </div>
 
-            <div className="mt-24 reveal">
-              <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: 'var(--muted)' }}>Education & Licensure</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                {education.map(ed => (
-                  <div key={ed.degree} className="border-t pt-4" style={{ borderColor: 'var(--rule)' }}>
-                    <div className="mono text-xs mb-2" style={{ color: 'var(--muted)' }}>{ed.year}</div>
-                    <div className="serif text-xl mb-1">{ed.degree}</div>
-                    <div className="text-sm" style={{ color: 'var(--muted)' }}>{ed.school}</div>
-                  </div>
-                ))}
+            <div className="mt-24 grid lg:grid-cols-2 gap-12 reveal">
+              <div>
+                <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: 'var(--muted)' }}>Education</h3>
+                <div className="grid md:grid-cols-1 gap-6">
+                  {education.map(ed => (
+                    <div key={ed.degree} className="border-t pt-4" style={{ borderColor: 'var(--rule)' }}>
+                      {ed.year ? <div className="mono text-xs mb-2" style={{ color: 'var(--muted)' }}>{ed.year}</div> : null}
+                      <div className="serif text-xl mb-1">{ed.degree}</div>
+                      <div className="text-sm" style={{ color: 'var(--muted)' }}>{ed.school}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: 'var(--muted)' }}>Certifications</h3>
+                <div className="grid md:grid-cols-1 gap-6">
+                  {certifications.map(cert => (
+                    <div key={cert.title} className="border-t pt-4" style={{ borderColor: 'var(--rule)' }}>
+                      {(() => {
+                        const pdfUrl = cert.file ? encodeURI(cert.file) : '';
+                        return (
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="serif text-xl mb-1">{cert.title}</div>
+                          <div className="text-sm" style={{ color: 'var(--muted)' }}>
+                            {cert.issuer}{cert.year ? ` · ${cert.year}` : ''}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 whitespace-nowrap">
+                          {cert.file ? (
+                            <button
+                              type="button"
+                              onClick={() => onOpenPdf(cert)}
+                              className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition"
+                            >
+                              View PDF
+                            </button>
+                          ) : null}
+                          {cert.file ? (
+                            <a href={pdfUrl} download className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition">
+                              Download ↓
+                            </a>
+                          ) : null}
+                        </div>
+                      </div>
+                        );
+                      })()}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -795,7 +1025,7 @@
       );
     }
 
-    function Coursework() {
+    function Coursework({ onOpenPdf }) {
       const groups = [];
       const map = new Map();
       coursework.forEach((c) => {
@@ -820,19 +1050,36 @@
                 <div className="mono text-[10px] uppercase tracking-[0.3em] pb-1 border-b reveal" style={{ color: 'var(--muted)', borderColor: 'var(--rule)' }}>
                   {g}
                 </div>
-                {map.get(g).map((c) => (
-                  <a key={c.code} href={c.file} download
-                     className="card group grid grid-cols-12 gap-3 md:gap-4 py-2.5 border-b items-baseline reveal"
-                     style={{ borderColor: 'var(--rule)' }}>
-                    <span className="col-span-2 md:col-span-1 mono text-[11px]" style={{ color: 'var(--muted)' }}>{c.code}</span>
-                    <span className="col-span-10 md:col-span-5 serif text-base md:text-lg leading-tight transition group-hover:opacity-70">
-                      {c.title}<span className="hidden md:inline" style={{ color: 'var(--muted)' }}> — <i>{c.subtitle}</i></span>
-                    </span>
-                    <span className="hidden md:block md:col-span-3 text-xs" style={{ color: 'var(--muted)' }}>{c.studio}</span>
-                    <span className="col-span-7 md:col-span-2 mono text-[11px]" style={{ color: 'var(--muted)' }}>{c.term}</span>
-                    <span className="col-span-5 md:col-span-1 text-right mono text-[10px] uppercase tracking-widest">PDF ↓</span>
-                  </a>
-                ))}
+                {map.get(g).map((c) => {
+                  const pdfUrl = c.file ? encodeURI(c.file) : '';
+                  return (
+                    <div key={c.code} className="card group grid grid-cols-12 gap-3 md:gap-4 py-2.5 border-b items-baseline reveal" style={{ borderColor: 'var(--rule)' }}>
+                      <button
+                        type="button"
+                        onClick={() => onOpenPdf({ title: c.title, issuer: c.group, year: c.term, file: c.file })}
+                        className="col-span-9 md:col-span-11 grid grid-cols-9 md:grid-cols-11 gap-3 md:gap-4 items-baseline text-left hover:opacity-80 transition"
+                      >
+                        <span className="col-span-2 md:col-span-1 mono text-[11px]" style={{ color: 'var(--muted)' }}>{c.code}</span>
+                        <span className="col-span-7 md:col-span-5 serif text-base md:text-lg leading-tight transition group-hover:opacity-70">
+                          {c.title}<span className="hidden md:inline" style={{ color: 'var(--muted)' }}> — <i>{c.subtitle}</i></span>
+                        </span>
+                        <span className="hidden md:block md:col-span-3 text-xs" style={{ color: 'var(--muted)' }}>{c.studio}</span>
+                        <span className="hidden md:block md:col-span-2 mono text-[11px]" style={{ color: 'var(--muted)' }}>{c.term}</span>
+                      </button>
+                      <div className="col-span-3 md:col-span-1 flex justify-end gap-4">
+                        <button
+                          type="button"
+                          onClick={() => onOpenPdf({ title: c.title, issuer: c.group, year: c.term, file: c.file })}
+                          className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition"
+                        >
+                          View PDF
+                        </button>
+                        <a href={pdfUrl} download className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition">PDF ↓</a>
+                      </div>
+                      <span className="col-span-7 md:hidden mono text-[11px]" style={{ color: 'var(--muted)' }}>{c.term}</span>
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -1170,6 +1417,7 @@
       const activeSection = useActiveSection();
       const [loading, setLoading] = useState(true);
       const [active, setActive] = useState(null);
+      const [activePdf, setActivePdf] = useState(null);
       const [scrolled, setScrolled] = useState(false);
       const [showTop, setShowTop] = useState(false);
       const progress = useScrollProgress();
@@ -1201,13 +1449,14 @@
             <Services />
             <Work onOpen={setActive} />
             <About />
-            <Experience />
-            <Coursework />
+            <Experience onOpenPdf={setActivePdf} />
+            <Coursework onOpenPdf={setActivePdf} />
             <Skills />
             <Contact />
           </main>
           <Footer />
           <Lightbox project={active} onClose={() => setActive(null)} />
+          <PdfViewer item={activePdf} onClose={() => setActivePdf(null)} />
           <BackToTop visible={showTop} />
         </>
       );
