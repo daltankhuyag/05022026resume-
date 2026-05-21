@@ -82,8 +82,24 @@
     @media (max-width: 900px) { .cursor-dot, .cursor-ring { display: none; } }
 
     /* Reveal on scroll */
-    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .8s ease, transform .8s ease;
+      transition-delay: var(--reveal-delay, 0ms);
+    }
     .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    .title-letters { display: inline-block; }
+    .title-char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .65s ease, transform .65s cubic-bezier(.2,.7,.2,1);
+      transition-delay: var(--char-delay, 0ms);
+      will-change: transform, opacity;
+    }
+    .reveal.visible .title-char { opacity: 1; transform: translateY(0); }
 
     /* Marquee */
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -100,7 +116,54 @@
 
     /* Project card image hover */
     .card img { transition: transform 1.2s cubic-bezier(.2,.7,.2,1), filter .6s ease; }
-    .card:hover img { transform: scale(1.04); }
+    .parallax-media {
+      transform: translateY(var(--parallax-offset, 0px)) scale(1.02);
+      will-change: transform;
+    }
+    .card:hover .parallax-media { transform: translateY(var(--parallax-offset, 0px)) scale(1.08); }
+
+    .action-btn {
+      transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease;
+      will-change: transform;
+    }
+    .action-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(10, 10, 12, 0.08);
+    }
+
+    @keyframes modalFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes modalRise {
+      from { opacity: 0; transform: translateY(28px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes imageSlideIn {
+      from { opacity: 0; transform: translateX(30px) scale(0.98); }
+      to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    .modal-shell { animation: modalFade .35s ease both; }
+    .modal-panel { animation: modalRise .45s cubic-bezier(.2,.7,.2,1) both; }
+    .lightbox-image { animation: imageSlideIn .55s cubic-bezier(.2,.7,.2,1) both; }
+    .pdf-canvas-ready { animation: modalRise .35s ease both; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal,
+      .title-char,
+      .card img,
+      .parallax-media,
+      .action-btn,
+      .modal-shell,
+      .modal-panel,
+      .lightbox-image,
+      .pdf-canvas-ready {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+      }
+    }
 
     /* Hide scrollbar in modal */
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -539,10 +602,10 @@
       );
     }
 
-    function Hero() {
+    function Hero({ scrollY }) {
       return (
         <header id="top" className="pt-36 md:pt-44 pb-20 md:pb-28 px-6 md:px-10 relative overflow-hidden">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto" style={{ transform: `translateY(${Math.min(scrollY * 0.08, 28)}px)` }}>
             <div className="flex justify-between items-baseline mb-8 mono text-[10px] uppercase tracking-[0.4em] reveal" style={{ color: 'var(--muted)' }}>
               <span>{profile.role} — {profile.studio}</span>
               <span className="hidden md:inline">{profile.lat} / {profile.lon}</span>
@@ -612,7 +675,13 @@
             <div className="mono text-[10px] uppercase tracking-[0.4em] mb-4" style={{ color: 'var(--muted)' }}>
               {index} — {kicker}
             </div>
-            <h2 className="serif display text-4xl md:text-6xl">{title}</h2>
+            <h2 className="serif display text-4xl md:text-6xl title-letters" aria-label={title}>
+              {Array.from(title).map((char, index) => (
+                <span key={`${title}-${index}-${char === ' ' ? 'space' : char}`} className="title-char" style={{ '--char-delay': `${80 + index * 22}ms` }}>
+                  {char === ' ' ? '\u00A0' : char}
+                </span>
+              ))}
+            </h2>
           </div>
           {sub && <div className="hidden md:block text-sm max-w-xs text-right" style={{ color: 'var(--muted)' }}>{sub}</div>}
         </div>
@@ -641,7 +710,7 @@
       );
     }
 
-    function Work({ onOpen }) {
+    function Work({ onOpen, scrollY }) {
       const [filter, setFilter] = useState("All");
       const filtered = useMemo(
         () => filter === "All" ? projects : projects.filter(p => p.type === filter),
@@ -667,7 +736,12 @@
                          className={`card cursor-pointer reveal ${i % 4 === 1 || i % 4 === 2 ? 'md:mt-16' : ''}`}
                          onClick={() => onOpen(p)}>
                   <div className="overflow-hidden aspect-[4/3] mb-6" style={{ background: 'var(--surface)' }}>
-                    <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
+                    <img
+                      src={p.images[0]}
+                      alt={p.title}
+                      className="w-full h-full object-cover parallax-media"
+                      style={{ '--parallax-offset': `${Math.max(-20, Math.min(20, (scrollY - i * 180) * 0.04))}px` }}
+                    />
                   </div>
                   <div className="flex items-baseline justify-between mono text-[10px] uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>
                     <span>{String(projects.indexOf(p) + 1).padStart(2, "0")} · {p.type}</span>
@@ -699,20 +773,20 @@
       }, [project]);
       if (!project) return null;
       return (
-        <div className="fixed inset-0 z-50 backdrop-blur-md" style={{ background: 'color-mix(in srgb, var(--bg) 90%, black)' }} onClick={onClose}>
-          <div className="absolute top-0 left-0 right-0 flex justify-between p-6 md:p-10 mono text-xs uppercase tracking-widest">
+        <div className="fixed inset-0 z-50 backdrop-blur-md modal-shell" style={{ background: 'color-mix(in srgb, var(--bg) 90%, black)' }} onClick={onClose}>
+          <div className="absolute top-0 left-0 right-0 z-10 flex justify-between p-6 md:p-10 mono text-xs uppercase tracking-widest">
             <span style={{ color: 'var(--muted)' }}>{project.type} · {project.year}</span>
             <button onClick={onClose} className="ul-link">Close ✕</button>
           </div>
-          <div className="h-full flex flex-col md:flex-row" onClick={(e) => e.stopPropagation()}>
+          <div className="h-full flex flex-col md:flex-row modal-panel" onClick={(e) => e.stopPropagation()}>
             <div className="flex-1 relative flex items-center justify-center px-4 md:px-10 pt-20 md:pt-24 pb-6">
-              <img src={project.images[idx]} alt={project.title} className="max-h-full max-w-full object-contain" />
+              <img key={project.images[idx]} src={project.images[idx]} alt={project.title} className="max-h-full max-w-full object-contain lightbox-image" />
               {project.images.length > 1 && (
                 <>
                   <button onClick={() => setIdx(i => (i - 1 + project.images.length) % project.images.length)}
-                          className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 mono text-xs uppercase tracking-widest hover:opacity-60">← Prev</button>
+                          className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 mono text-xs uppercase tracking-widest hover:opacity-60 action-btn">← Prev</button>
                   <button onClick={() => setIdx(i => (i + 1) % project.images.length)}
-                          className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 mono text-xs uppercase tracking-widest hover:opacity-60">Next →</button>
+                          className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 mono text-xs uppercase tracking-widest hover:opacity-60 action-btn">Next →</button>
                 </>
               )}
             </div>
@@ -846,8 +920,8 @@
 
       if (!item) return null;
       return (
-        <div className="fixed inset-0 z-50 backdrop-blur-md" style={{ background: 'color-mix(in srgb, var(--bg) 90%, black)' }} onClick={onClose}>
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between gap-4 p-6 md:p-10 mono text-xs uppercase tracking-widest">
+        <div className="fixed inset-0 z-50 backdrop-blur-md modal-shell" style={{ background: 'color-mix(in srgb, var(--bg) 90%, black)' }} onClick={onClose}>
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between gap-4 p-6 md:p-10 mono text-xs uppercase tracking-widest">
             <div style={{ color: 'var(--muted)' }}>{item.issuer}{item.year ? ` · ${item.year}` : ''}</div>
             <div className="flex items-center gap-4">
               <a href={pdfUrl} target="_blank" rel="noreferrer" className="ul-link">Open ↗</a>
@@ -856,18 +930,18 @@
             </div>
           </div>
           <div className="h-full pt-24 md:pt-28 pb-6 px-4 md:px-10" onClick={(e) => e.stopPropagation()}>
-            <div className="h-full border" style={{ borderColor: 'var(--rule)', background: 'var(--bg)' }}>
+            <div className="h-full border modal-panel" style={{ borderColor: 'var(--rule)', background: 'var(--bg)' }}>
               <div className="flex items-center justify-between gap-4 px-5 py-4 border-b" style={{ borderColor: 'var(--rule)' }}>
                 <div>
                   <h3 className="serif text-2xl md:text-3xl">{item.title}</h3>
                   <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>In-page PDF viewer</p>
                 </div>
                 <div className="flex items-center gap-3 mono text-[10px] uppercase tracking-widest">
-                  <button type="button" onClick={() => setPageNumber((page) => Math.max(1, page - 1))} disabled={pageNumber <= 1} className="hover:opacity-60 transition disabled:opacity-30">
+                  <button type="button" onClick={() => setPageNumber((page) => Math.max(1, page - 1))} disabled={pageNumber <= 1} className="hover:opacity-60 transition disabled:opacity-30 action-btn">
                     Prev
                   </button>
                   <span style={{ color: 'var(--muted)' }}>{pageCount ? `${pageNumber} / ${pageCount}` : 'Loading'}</span>
-                  <button type="button" onClick={() => setPageNumber((page) => Math.min(pageCount, page + 1))} disabled={!pageCount || pageNumber >= pageCount} className="hover:opacity-60 transition disabled:opacity-30">
+                  <button type="button" onClick={() => setPageNumber((page) => Math.min(pageCount, page + 1))} disabled={!pageCount || pageNumber >= pageCount} className="hover:opacity-60 transition disabled:opacity-30 action-btn">
                     Next
                   </button>
                 </div>
@@ -888,7 +962,7 @@
                       </div>
                     </div>
                   ) : null}
-                  <canvas ref={canvasRef} className={error ? 'hidden' : 'shadow-[0_18px_48px_rgba(0,0,0,0.12)] max-w-full'} />
+                  <canvas ref={canvasRef} className={error ? 'hidden' : 'shadow-[0_18px_48px_rgba(0,0,0,0.12)] max-w-full pdf-canvas-ready'} />
                 </div>
               </div>
             </div>
@@ -971,8 +1045,8 @@
               <div>
                 <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: 'var(--muted)' }}>Education</h3>
                 <div className="grid md:grid-cols-1 gap-6">
-                  {education.map(ed => (
-                    <div key={ed.degree} className="border-t pt-4" style={{ borderColor: 'var(--rule)' }}>
+                  {education.map((ed, index) => (
+                    <div key={ed.degree} className="border-t pt-4 reveal" style={{ borderColor: 'var(--rule)', '--reveal-delay': `${index * 70}ms` }}>
                       {ed.year ? <div className="mono text-xs mb-2" style={{ color: 'var(--muted)' }}>{ed.year}</div> : null}
                       <div className="serif text-xl mb-1">{ed.degree}</div>
                       <div className="text-sm" style={{ color: 'var(--muted)' }}>{ed.school}</div>
@@ -984,8 +1058,8 @@
               <div>
                 <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: 'var(--muted)' }}>Certifications</h3>
                 <div className="grid md:grid-cols-1 gap-6">
-                  {certifications.map(cert => (
-                    <div key={cert.title} className="border-t pt-4" style={{ borderColor: 'var(--rule)' }}>
+                  {certifications.map((cert, index) => (
+                    <div key={cert.title} className="border-t pt-4 reveal" style={{ borderColor: 'var(--rule)', '--reveal-delay': `${index * 65}ms` }}>
                       {(() => {
                         const pdfUrl = cert.file ? encodeURI(cert.file) : '';
                         return (
@@ -1001,7 +1075,7 @@
                             <button
                               type="button"
                               onClick={() => onOpenPdf(cert)}
-                              className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition"
+                              className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition action-btn"
                             >
                               View PDF
                             </button>
@@ -1045,15 +1119,15 @@
               </div>
             </div>
 
-            {groups.map((g) => (
+            {groups.map((g, groupIndex) => (
               <div key={g} className="mt-6">
-                <div className="mono text-[10px] uppercase tracking-[0.3em] pb-1 border-b reveal" style={{ color: 'var(--muted)', borderColor: 'var(--rule)' }}>
+                <div className="mono text-[10px] uppercase tracking-[0.3em] pb-1 border-b reveal" style={{ color: 'var(--muted)', borderColor: 'var(--rule)', '--reveal-delay': `${groupIndex * 90}ms` }}>
                   {g}
                 </div>
-                {map.get(g).map((c) => {
+                {map.get(g).map((c, itemIndex) => {
                   const pdfUrl = c.file ? encodeURI(c.file) : '';
                   return (
-                    <div key={c.code} className="card group grid grid-cols-12 gap-3 md:gap-4 py-2.5 border-b items-baseline reveal" style={{ borderColor: 'var(--rule)' }}>
+                    <div key={c.code} className="card group grid grid-cols-12 gap-3 md:gap-4 py-2.5 border-b items-baseline reveal" style={{ borderColor: 'var(--rule)', '--reveal-delay': `${groupIndex * 120 + itemIndex * 55}ms` }}>
                       <button
                         type="button"
                         onClick={() => onOpenPdf({ title: c.title, issuer: c.group, year: c.term, file: c.file })}
@@ -1070,7 +1144,7 @@
                         <button
                           type="button"
                           onClick={() => onOpenPdf({ title: c.title, issuer: c.group, year: c.term, file: c.file })}
-                          className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition"
+                          className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition action-btn"
                         >
                           View PDF
                         </button>
@@ -1420,9 +1494,14 @@
       const [activePdf, setActivePdf] = useState(null);
       const [scrolled, setScrolled] = useState(false);
       const [showTop, setShowTop] = useState(false);
+      const [scrollY, setScrollY] = useState(0);
       const progress = useScrollProgress();
       useReveal();
       useCursor();
+
+      useEffect(() => {
+        document.documentElement.style.setProperty('--scroll-progress', progress.toFixed(2));
+      }, [progress]);
 
       useEffect(() => {
         const t = setTimeout(() => setLoading(false), 900);
@@ -1432,6 +1511,7 @@
         const onScroll = () => {
           setScrolled(window.scrollY > 40);
           setShowTop(window.scrollY > 800);
+          setScrollY(window.scrollY);
         };
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
@@ -1445,9 +1525,9 @@
           <Nav theme={theme} toggleTheme={toggleTheme} scrolled={scrolled} fs={fs} toggleFs={toggleFs} />
           <SideDots active={activeSection} />
           <main>
-            <Hero />
+            <Hero scrollY={scrollY} />
             <Services />
-            <Work onOpen={setActive} />
+            <Work onOpen={setActive} scrollY={scrollY} />
             <About />
             <Experience onOpenPdf={setActivePdf} />
             <Coursework onOpenPdf={setActivePdf} />
