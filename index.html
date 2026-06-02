@@ -322,6 +322,45 @@
   <script type="text/babel" data-presets="env,react">
     const { useState, useEffect, useRef, useMemo } = React;
 
+    function PdfThumbnail({ file }) {
+      const canvasRef = useRef(null);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(false);
+      useEffect(() => {
+        if (!file || !canvasRef.current) return;
+        let cancelled = false;
+        const task = pdfjsLib.getDocument(encodeURI(file));
+        setLoading(true);
+        setError(false);
+        task.promise.then(pdf => pdf.getPage(1)).then(page => {
+          if (cancelled) return;
+          const vp = page.getViewport({ scale: 1 });
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const ratio = window.devicePixelRatio || 1;
+          const displayW = canvas.parentElement ? canvas.parentElement.clientWidth || 600 : 600;
+          const scale = displayW / vp.width;
+          const vp2 = page.getViewport({ scale });
+          canvas.width = Math.floor(vp2.width * ratio);
+          canvas.height = Math.floor(vp2.height * ratio);
+          canvas.style.width = vp2.width + 'px';
+          canvas.style.height = vp2.height + 'px';
+          const ctx = canvas.getContext('2d');
+          ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+          return page.render({ canvasContext: ctx, viewport: vp2 }).promise;
+        }).then(() => { if (!cancelled) setLoading(false); })
+          .catch(() => { if (!cancelled) { setLoading(false); setError(true); } });
+        return () => { cancelled = true; task.destroy(); };
+      }, [file]);
+      return (
+        <div className="w-full relative" style={{ background: 'var(--surface)' }}>
+          {loading && <div className="absolute inset-0 flex items-center justify-center mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Loading…</div>}
+          {error && <div className="absolute inset-0 flex items-center justify-center mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Unable to load</div>}
+          <canvas ref={canvasRef} className="w-full block" style={{ opacity: loading ? 0 : 1, transition: 'opacity .3s' }} />
+        </div>
+      );
+    }
+
     // ──────────────────────────────────────────────────────────────────
     // CONTENT — edit freely
     // ──────────────────────────────────────────────────────────────────
@@ -448,6 +487,9 @@
     ];
 
     const certifications = [
+      { title: "Architectural Detailing for High Performance and Healthy Buildings", issuer: "AIA", year: "2026", file: "Certification/AIA_01_Course_completion_certificate.pdf" },
+      { title: "Achieving High-Performance Building Design", issuer: "AIA", year: "2026", file: "Certification/AIA_02_ Certificate_of_Completion- Achieve High Performance building design.pdf" },
+      { title: "A Pragmatic Approach to AI in Architecture", issuer: "AIA", year: "2026", file: "Certification/AIA_03_ Certificate_of_Completion.pdf" },
       { title: "Predesign Planning Part 1", issuer: "NCARB", year: "2022", file: "Certification/Predesign Part 01.pdf" },
       { title: "Predesign Planning Part 2: Values and Architecture", issuer: "NCARB", year: "2022", file: "Certification/68233_certificate_277.pdf" },
       { title: "Predesign Planning Part 3: Project Planning", issuer: "NCARB", year: "2022", file: "Certification/68233_certificate_306 (1).pdf" },
@@ -1184,8 +1226,60 @@
 
               <div>
                 <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: 'var(--muted)' }}>Certifications</h3>
+
+                {/* AIA slider */}
+                {(() => {
+                  const aiaCerts = certifications.filter(c => c.issuer === 'AIA');
+                  const [slide, setSlide] = React.useState(0);
+                  const prev = () => setSlide(s => (s - 1 + aiaCerts.length) % aiaCerts.length);
+                  const next = () => setSlide(s => (s + 1) % aiaCerts.length);
+                  const cert = aiaCerts[slide];
+                  const pdfUrl = cert.file ? encodeURI(cert.file) : '';
+                  return (
+                    <div className="mb-12">
+                      <div className="mono text-[9px] uppercase tracking-[0.3em] mb-6" style={{ color: 'var(--muted)' }}>AIA Continuing Education</div>
+
+                      {/* Certificate image */}
+                      <div className="border overflow-hidden mb-0" style={{ borderColor: 'var(--rule)' }}>
+                        <PdfThumbnail key={cert.file} file={cert.file} />
+                      </div>
+
+                      {/* Controls bar */}
+                      <div className="border-t border-l border-r px-5 py-4 flex items-center justify-between gap-4" style={{ borderColor: 'var(--rule)' }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="serif text-base mb-0.5 truncate">{cert.title}</div>
+                          <div className="mono text-[10px]" style={{ color: 'var(--muted)' }}>
+                            {cert.issuer}{cert.year ? ` · ${cert.year}` : ''}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-5 shrink-0">
+                          {cert.file ? (
+                            <button type="button" onClick={() => onOpenPdf(cert)} className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition action-btn">View</button>
+                          ) : null}
+                          {cert.file ? (
+                            <a href={pdfUrl} download className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition">↓</a>
+                          ) : null}
+                          <div className="flex items-center gap-2">
+                            <button type="button" onClick={prev} className="mono text-[10px] hover:opacity-60 transition px-2 py-1 border" style={{ borderColor: 'var(--rule)' }}>←</button>
+                            <span className="mono text-[9px]" style={{ color: 'var(--muted)' }}>{slide + 1}/{aiaCerts.length}</span>
+                            <button type="button" onClick={next} className="mono text-[10px] hover:opacity-60 transition px-2 py-1 border" style={{ borderColor: 'var(--rule)' }}>→</button>
+                          </div>
+                          <div className="flex gap-1.5">
+                            {aiaCerts.map((_, i) => (
+                              <button key={i} type="button" onClick={() => setSlide(i)}
+                                className="w-1.5 h-1.5 rounded-full transition"
+                                style={{ background: i === slide ? 'var(--fg)' : 'var(--rule)' }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div className="grid md:grid-cols-1 gap-6">
-                  {certifications.map((cert, index) => (
+                  {certifications.filter(c => c.issuer !== 'AIA').map((cert, index) => (
                     <div key={cert.title} className="border-t pt-4 reveal" style={{ borderColor: 'var(--rule)', '--reveal-delay': `${index * 65}ms` }}>
                       {(() => {
                         const pdfUrl = cert.file ? encodeURI(cert.file) : '';

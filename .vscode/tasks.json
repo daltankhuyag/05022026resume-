@@ -4,14 +4,11 @@
 		{
 			"label": "Run resume site",
 			"type": "shell",
-			"command": "d:\\Documents\\GitHub\\Resume-\\Claude\\Projects\\Resume\\05022026resume-\\.venv\\Scripts\\python.exe",
-			"args": [
-				"-m",
-				"http.server",
-				"8000"
-			],
+			"command": "npm",
+			"args": ["start"],
 			"isBackground": true,
-			"group": "build"
+			"group": "build",
+			"problemMatcher": []
 		}
 	]
 }
