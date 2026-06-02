@@ -1231,6 +1231,7 @@
                 {(() => {
                   const aiaCerts = certifications.filter(c => c.issuer === 'AIA');
                   const [slide, setSlide] = React.useState(0);
+                  const [paused, setPaused] = React.useState(false);
                   const touchStartX = useRef(null);
                   const prev = () => setSlide(s => (s - 1 + aiaCerts.length) % aiaCerts.length);
                   const next = () => setSlide(s => (s + 1) % aiaCerts.length);
@@ -1241,10 +1242,15 @@
                     if (Math.abs(dx) > 40) dx < 0 ? next() : prev();
                     touchStartX.current = null;
                   };
+                  useEffect(() => {
+                    if (paused) return;
+                    const id = setInterval(() => setSlide(s => (s + 1) % aiaCerts.length), 4000);
+                    return () => clearInterval(id);
+                  }, [paused, aiaCerts.length]);
                   const cert = aiaCerts[slide];
                   const pdfUrl = cert.file ? encodeURI(cert.file) : '';
                   return (
-                    <div className="mb-12">
+                    <div className="mb-12" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
                       <div className="mono text-[9px] uppercase tracking-[0.3em] mb-6" style={{ color: 'var(--muted)' }}>AIA Continuing Education</div>
 
                       {/* Certificate image with swipe */}
