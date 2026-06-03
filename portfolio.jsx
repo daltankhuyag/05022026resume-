@@ -127,6 +127,25 @@ const testimonials = [
   { quote: "Our home is calmer than I knew a home could be. Years later we're still finding small gifts in the way it's drawn.", who: "Eli & Renée S.", role: "Casa Verde, Hudson Valley" },
 ];
 
+const aiaCerts = [
+  { title: "Course Completion Certificate", org: "AIA", file: "/Certification/AIA_01_Course_completion_certificate.pdf" },
+  { title: "Achieve High Performance Building Design", org: "AIA", file: "/Certification/AIA_02_ Certificate_of_Completion- Achieve High Performance building design.pdf" },
+  { title: "Certificate of Completion", org: "AIA", file: "/Certification/AIA_03_ Certificate_of_Completion.pdf" },
+];
+
+const ncarbCerts = [
+  { title: "NCARB Certificate", org: "NCARB", file: "/Certification/NC-EN-NCARB04602a-0520.pdf" },
+  { title: "Predesign — Part 01", org: "NCARB ARE", file: "/Certification/Predesign Part 01.pdf" },
+];
+
+const aciCerts = [
+  { title: "ACI 314R-16 Guide to Simplified Design of Reinforced Concrete Buildings", org: "American Concrete Institute", file: "/Certification/Altankhuyag Dash-Transcript-ACI 314R-16 Guide to Simplified Design of Reinforced Concrete Buildings.pdf" },
+  { title: "Contractor's Guide to Formwork", org: "American Concrete Institute", file: "/Certification/Altankhuyag Dash-Transcript-Contractor's Guide Formwork.pdf" },
+  { title: "Constructability Series: Structural System Concept Design (Part 2)", org: "American Concrete Institute", file: "/Certification/Altankhuyag Dash-Transcript-Constructability Series Structural System Concept Design (Part 2).pdf" },
+  { title: "Design and Detailing for Seismic Resistance", org: "American Concrete Institute", file: "/Certification/Altankhuyag Dash-Transcript-Design and D ... 52-20.pdf" },
+  { title: "Design and Detailing Fundamentals", org: "American Concrete Institute", file: "/Certification/Altankhuyag Dash-Transcript-Design and D ... 04-35.pdf" },
+];
+
 // ─────────────── STYLES (injected once) ─────────────────────────
 const STYLES = `
   :root { --bg:#f4f2eb; --surface:#e9e6dc; --ink:#0a0a0c; --muted:#5e5d63; --rule:#c8c5b9; }
@@ -751,6 +770,41 @@ function Testimonials() {
   );
 }
 
+function CertSlider({ index, kicker, title, certs }) {
+  const [i, setI] = useState(0);
+  const prev = () => setI((v) => (v - 1 + certs.length) % certs.length);
+  const next = () => setI((v) => (v + 1) % certs.length);
+  const c = certs[i];
+  return (
+    <section className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: "var(--rule)" }}>
+      <div className="max-w-5xl mx-auto reveal">
+        <div className="mono text-[10px] uppercase tracking-[0.4em] mb-10" style={{ color: "var(--muted)" }}>{index} — {kicker}</div>
+        <h2 className="serif display text-4xl md:text-6xl mb-12">{title}</h2>
+        <div key={i} className="border-t pt-8" style={{ borderColor: "var(--rule)" }}>
+          <div className="mono text-[10px] uppercase tracking-[0.3em] mb-4" style={{ color: "var(--muted)" }}>{c.org}</div>
+          <p className="serif text-2xl md:text-3xl leading-snug mb-8">{c.title}</p>
+          <a href={c.file} download
+             className="mono text-[11px] uppercase tracking-widest ul-link" style={{ color: "var(--muted)" }}>
+            Download PDF ↓
+          </a>
+        </div>
+        <div className="mt-10 flex items-center gap-6">
+          <div className="flex gap-3">
+            <button onClick={prev} className="mono text-xs uppercase tracking-widest hover:opacity-60" aria-label="Previous">← Prev</button>
+            <button onClick={next} className="mono text-xs uppercase tracking-widest hover:opacity-60" aria-label="Next">Next →</button>
+          </div>
+          <div className="ml-auto flex gap-2">
+            {certs.map((_, j) => (
+              <button key={j} onClick={() => setI(j)} aria-label={`Certificate ${j + 1}`}
+                      className="w-8 transition" style={{ background: j === i ? "var(--ink)" : "var(--rule)", height: j === i ? 2 : 1 }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Field({ label, value, onChange, type = "text", textarea, required, options, min }) {
   const cls = "mt-2 w-full bg-transparent border-b py-3 outline-none focus:border-[var(--ink)] transition";
   const sty = { borderColor: "var(--rule)", color: "var(--ink)" };
@@ -1012,6 +1066,9 @@ export default function Portfolio() {
         <About />
         <Experience />
         <Coursework />
+        <CertSlider index="06" kicker="AIA Certifications" title="AIA Continuing Education." certs={aiaCerts} />
+        <CertSlider index="07" kicker="NCARB" title="NCARB Licensure." certs={ncarbCerts} />
+        <CertSlider index="08" kicker="American Concrete Institute" title="ACI Coursework." certs={aciCerts} />
         <Skills />
         <Contact />
       </main>

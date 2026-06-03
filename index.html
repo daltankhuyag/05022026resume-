@@ -1185,6 +1185,81 @@
       );
     }
 
+    function CertSlider({ label, issuer, onOpenPdf }) {
+      const certs = certifications.filter(c => c.issuer === issuer);
+      const [slide, setSlide] = useState(0);
+      const [paused, setPaused] = useState(false);
+      const touchStartX = useRef(null);
+      const prev = () => setSlide(s => (s - 1 + certs.length) % certs.length);
+      const next = () => setSlide(s => (s + 1) % certs.length);
+      const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+      const onTouchEnd = (e) => {
+        if (touchStartX.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX.current;
+        if (Math.abs(dx) > 40) dx < 0 ? next() : prev();
+        touchStartX.current = null;
+      };
+      useEffect(() => {
+        if (paused) return;
+        const id = setInterval(() => setSlide(s => (s + 1) % certs.length), 4000);
+        return () => clearInterval(id);
+      }, [paused, certs.length]);
+      if (!certs.length) return null;
+      const cert = certs[slide];
+      const pdfUrl = cert.file ? encodeURI(cert.file) : '';
+      return (
+        <div className="mb-12" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+          <div className="mono text-[9px] uppercase tracking-[0.3em] mb-6" style={{ color: 'var(--muted)' }}>{label}</div>
+          <div
+            className="border overflow-hidden select-none"
+            style={{ borderColor: 'var(--rule)', touchAction: 'pan-y' }}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
+            <PdfThumbnail key={cert.file} file={cert.file} />
+          </div>
+          <div className="border-t border-l border-r px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4" style={{ borderColor: 'var(--rule)' }}>
+            <div className="min-w-0">
+              <div className="serif text-base mb-0.5 leading-snug">{cert.title}</div>
+              <div className="mono text-[10px]" style={{ color: 'var(--muted)' }}>
+                {cert.issuer}{cert.year ? ` · ${cert.year}` : ''}
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-4 md:justify-end md:shrink-0">
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={prev}
+                  className="mono text-sm hover:opacity-60 transition flex items-center justify-center border"
+                  style={{ borderColor: 'var(--rule)', width: 36, height: 36 }}>←</button>
+                <div className="flex gap-2">
+                  {certs.map((_, i) => (
+                    <button key={i} type="button" onClick={() => setSlide(i)}
+                      style={{
+                        width: 8, height: 8, borderRadius: '50%',
+                        background: i === slide ? 'var(--ink)' : 'var(--rule)',
+                        transition: 'background .2s'
+                      }}
+                    />
+                  ))}
+                </div>
+                <button type="button" onClick={next}
+                  className="mono text-sm hover:opacity-60 transition flex items-center justify-center border"
+                  style={{ borderColor: 'var(--rule)', width: 36, height: 36 }}>→</button>
+              </div>
+              <div className="flex items-center gap-4">
+                {cert.file ? (
+                  <button type="button" onClick={() => onOpenPdf(cert)}
+                    className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition action-btn">View</button>
+                ) : null}
+                {cert.file ? (
+                  <a href={pdfUrl} download className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition">↓</a>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     function Experience({ onOpenPdf }) {
       return (
         <section id="experience" className="px-6 md:px-10 py-24 md:py-36 border-t" style={{ borderColor: 'var(--rule)' }}>
@@ -1227,125 +1302,36 @@
               <div>
                 <h3 className="mono text-[10px] uppercase tracking-[0.4em] mb-8" style={{ color: 'var(--muted)' }}>Certifications</h3>
 
-                {/* AIA slider */}
-                {(() => {
-                  const aiaCerts = certifications.filter(c => c.issuer === 'AIA');
-                  const [slide, setSlide] = React.useState(0);
-                  const [paused, setPaused] = React.useState(false);
-                  const touchStartX = useRef(null);
-                  const prev = () => setSlide(s => (s - 1 + aiaCerts.length) % aiaCerts.length);
-                  const next = () => setSlide(s => (s + 1) % aiaCerts.length);
-                  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
-                  const onTouchEnd = (e) => {
-                    if (touchStartX.current === null) return;
-                    const dx = e.changedTouches[0].clientX - touchStartX.current;
-                    if (Math.abs(dx) > 40) dx < 0 ? next() : prev();
-                    touchStartX.current = null;
-                  };
-                  useEffect(() => {
-                    if (paused) return;
-                    const id = setInterval(() => setSlide(s => (s + 1) % aiaCerts.length), 4000);
-                    return () => clearInterval(id);
-                  }, [paused, aiaCerts.length]);
-                  const cert = aiaCerts[slide];
-                  const pdfUrl = cert.file ? encodeURI(cert.file) : '';
-                  return (
-                    <div className="mb-12" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-                      <div className="mono text-[9px] uppercase tracking-[0.3em] mb-6" style={{ color: 'var(--muted)' }}>AIA Continuing Education</div>
+                <CertSlider label="AIA Continuing Education" issuer="AIA" onOpenPdf={onOpenPdf} />
+                <CertSlider label="NCARB" issuer="NCARB" onOpenPdf={onOpenPdf} />
+                <CertSlider label="American Concrete Institute" issuer="American Concrete Institute" onOpenPdf={onOpenPdf} />
 
-                      {/* Certificate image with swipe */}
-                      <div
-                        className="border overflow-hidden select-none"
-                        style={{ borderColor: 'var(--rule)', touchAction: 'pan-y' }}
-                        onTouchStart={onTouchStart}
-                        onTouchEnd={onTouchEnd}
-                      >
-                        <PdfThumbnail key={cert.file} file={cert.file} />
-                      </div>
-
-                      {/* Controls bar — stacks on mobile */}
-                      <div className="border-t border-l border-r px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4" style={{ borderColor: 'var(--rule)' }}>
-                        {/* Title + issuer */}
-                        <div className="min-w-0">
-                          <div className="serif text-base mb-0.5 leading-snug">{cert.title}</div>
-                          <div className="mono text-[10px]" style={{ color: 'var(--muted)' }}>
-                            {cert.issuer}{cert.year ? ` · ${cert.year}` : ''}
-                          </div>
-                        </div>
-
-                        {/* Nav + actions row */}
-                        <div className="flex items-center justify-between gap-4 md:justify-end md:shrink-0">
-                          {/* Prev / dots / next */}
-                          <div className="flex items-center gap-3">
-                            <button type="button" onClick={prev}
-                              className="mono text-sm hover:opacity-60 transition flex items-center justify-center border"
-                              style={{ borderColor: 'var(--rule)', width: 36, height: 36 }}>←</button>
-                            <div className="flex gap-2">
-                              {aiaCerts.map((_, i) => (
-                                <button key={i} type="button" onClick={() => setSlide(i)}
-                                  style={{
-                                    width: 8, height: 8, borderRadius: '50%',
-                                    background: i === slide ? 'var(--fg)' : 'var(--rule)',
-                                    transition: 'background .2s'
-                                  }}
-                                />
-                              ))}
+                {/* Remaining certifications as a flat list */}
+                <div className="grid md:grid-cols-1 gap-6">
+                  {certifications.filter(c => !['AIA', 'NCARB', 'American Concrete Institute'].includes(c.issuer)).map((cert, index) => {
+                    const pdfUrl = cert.file ? encodeURI(cert.file) : '';
+                    return (
+                      <div key={cert.title} className="border-t pt-4 reveal" style={{ borderColor: 'var(--rule)', '--reveal-delay': `${index * 65}ms` }}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <div className="serif text-xl mb-1">{cert.title}</div>
+                            <div className="text-sm" style={{ color: 'var(--muted)' }}>
+                              {cert.issuer}{cert.year ? ` · ${cert.year}` : ''}
                             </div>
-                            <button type="button" onClick={next}
-                              className="mono text-sm hover:opacity-60 transition flex items-center justify-center border"
-                              style={{ borderColor: 'var(--rule)', width: 36, height: 36 }}>→</button>
                           </div>
-
-                          {/* View / Download */}
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 whitespace-nowrap">
                             {cert.file ? (
                               <button type="button" onClick={() => onOpenPdf(cert)}
-                                className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition action-btn">View</button>
+                                className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition action-btn">View PDF</button>
                             ) : null}
                             {cert.file ? (
-                              <a href={pdfUrl} download className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition">↓</a>
+                              <a href={pdfUrl} download className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition">Download ↓</a>
                             ) : null}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })()}
-
-                <div className="grid md:grid-cols-1 gap-6">
-                  {certifications.filter(c => c.issuer !== 'AIA').map((cert, index) => (
-                    <div key={cert.title} className="border-t pt-4 reveal" style={{ borderColor: 'var(--rule)', '--reveal-delay': `${index * 65}ms` }}>
-                      {(() => {
-                        const pdfUrl = cert.file ? encodeURI(cert.file) : '';
-                        return (
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="serif text-xl mb-1">{cert.title}</div>
-                          <div className="text-sm" style={{ color: 'var(--muted)' }}>
-                            {cert.issuer}{cert.year ? ` · ${cert.year}` : ''}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4 whitespace-nowrap">
-                          {cert.file ? (
-                            <button
-                              type="button"
-                              onClick={() => onOpenPdf(cert)}
-                              className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition action-btn"
-                            >
-                              View PDF
-                            </button>
-                          ) : null}
-                          {cert.file ? (
-                            <a href={pdfUrl} download className="mono text-[10px] uppercase tracking-widest hover:opacity-60 transition">
-                              Download ↓
-                            </a>
-                          ) : null}
-                        </div>
-                      </div>
-                        );
-                      })()}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
