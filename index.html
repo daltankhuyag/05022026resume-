@@ -12,14 +12,14 @@
   <!-- React via CDN -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="babel.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
   <!-- Tailwind via CDN with dark mode = class -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="tailwind.min.js"></script>
   <script>
     tailwind.config = { darkMode: 'class' };
     // Apply theme before paint to avoid flash
@@ -49,16 +49,16 @@
       --plaster-2: #e9e6dc;
     }
     .dark {
-      --bg: #0a0a0c;
-      --surface: #15151a;
+      --bg: #0f0d0b;
+      --surface: #17140f;
       --ink: #f4f2eb;
-      --muted: #8a8990;
-      --rule: #2a2a30;
+      --muted: #6a6870;
+      --rule: #242018;
       --accent: #f4f2eb;
       --bronze: #f4f2eb;
-      --stone: #8a8990;
-      --plaster: #0a0a0c;
-      --plaster-2: #15151a;
+      --stone: #6a6870;
+      --plaster: #0f0d0b;
+      --plaster-2: #17140f;
     }
 
     html, body { background: var(--bg); color: var(--ink); }
@@ -461,6 +461,10 @@
       text-transform:uppercase;text-align:center;line-height:2;padding:0 1em;
     }
     @media(max-width:720px){.v-title{display:none}.v-bar{justify-content:center}}
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateY(0); opacity: 0.5; }
+      50% { transform: translateY(5px); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -900,11 +904,15 @@
               <span>{profile.role} — {profile.studio}</span>
               <span className="hidden md:inline">{profile.lat} / {profile.lon}</span>
             </div>
-            <h1 className="serif display text-[14vw] md:text-[10vw] lg:text-[8.5vw] leading-[0.92] reveal font-bold" style={{ color: '#F4A215', fontWeight: 700 }}>
-              {profile.first}
-              <br />
-              <span>{profile.last}</span>
-            </h1>
+            <div className="flex items-end justify-between gap-8 reveal">
+              <h1 className="serif display text-[14vw] md:text-[10vw] lg:text-[8.5vw] leading-[0.92] font-bold flex-1" style={{ color: 'var(--ink)', fontWeight: 700 }}>
+                {profile.first}<br />
+                <span style={{ color: 'var(--muted)' }}>{profile.last}</span>
+              </h1>
+              <div className="hidden md:block flex-shrink-0" style={{ width: '18vw', maxWidth: '240px' }}>
+                <img src="portrait.jpeg" alt={profile.first} style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', objectPosition: 'center top', filter: 'grayscale(15%)', borderRadius: '2px' }} />
+              </div>
+            </div>
             <div className="mt-12 md:mt-20 grid md:grid-cols-3 gap-10 reveal">
               <div className="md:col-span-2 serif text-2xl md:text-3xl leading-snug">
                 {profile.tagline}
@@ -923,9 +931,16 @@
           <div className="mt-20 md:mt-28 overflow-hidden border-y py-6" style={{ borderColor: 'var(--rule)' }}>
             <div className="marquee-track flex gap-12 whitespace-nowrap serif text-3xl md:text-5xl" style={{ width: 'max-content' }}>
               {[...Array(2)].flatMap((_, i) => [
-                'Architecture', '◇', 'Project manager', '◇', 'Superintendent', '◇',  '◇', 'Arlington,VA', '◇', 'Fairfax,VA', '◇', 'Available 2026', '◇',
+                'Architecture', '◇', 'Project manager', '◇', 'Superintendent', '◇', 'Arlington, VA', '◇', 'Fairfax,VA', '◇', 'Available 2026', '◇',
               ].map((s, j) => <span key={`${i}-${j}`} style={{ color: j % 2 ? 'var(--muted)' : 'var(--ink)' }}>{s}</span>))}
             </div>
+          </div>
+          {/* Scroll cue */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2" style={{ color: 'var(--muted)' }}>
+            <span className="mono text-[9px] uppercase tracking-[0.35em]">Scroll</span>
+            <svg width="14" height="20" viewBox="0 0 14 20" fill="none" style={{ animation: 'scrollBounce 2s ease-in-out infinite' }}>
+              <path d="M7 1 L7 13 M3 9 L7 14 L11 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
         </header>
       );
