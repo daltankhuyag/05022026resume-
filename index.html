@@ -10,12 +10,12 @@
   <meta property="og:type" content="website" />
 
   <!-- React via CDN -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="react.min.js"></script>
+  <script crossorigin src="react-dom.min.js"></script>
   <script src="babel.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="pdf.min.js"></script>
   <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
   </script>
 
   <!-- Tailwind via CDN with dark mode = class -->
@@ -587,7 +587,7 @@
         ],
       },
       {
-        title: "4192 39th street north, Arlington, VA", type: "Reisdential", year: "2024", location: "Arlington, VA",
+        title: "4192 39th street north, Arlington, VA", type: "Residential", year: "2024", location: "Arlington, VA",
         description: "A 6,732 sf family home built.",
         size: "6,732 sf", status: "Completed", role: "Project Manager (with HR Developers)",
         images: [
@@ -1946,7 +1946,7 @@
             <div>
               <div className="uppercase tracking-widest mb-3" style={{ color: 'var(--ink)' }}>Elsewhere</div>
               <ul className="space-y-2">
-                <li><a href={profile.social.instagram} target="_blank" rel="noreferrer" className="https://www.instagram.com/classicstone_va/">Instagram</a></li>
+                <li><a href={profile.social.instagram} target="_blank" rel="noreferrer" className="ul-link">Instagram</a></li>
                 <li><a href={profile.cv} download className="ul-link">CV (PDF)</a></li>
               </ul>
             </div>
