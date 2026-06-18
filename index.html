@@ -13,6 +13,15 @@
   <script crossorigin src="react.min.js"></script>
   <script crossorigin src="react-dom.min.js"></script>
   <script src="babel.min.js"></script>
+  <script>
+    // Babel 8 defaults to the new JSX transform which emits
+    // `import { jsx } from "react/jsx-runtime"` — incompatible with CDN globals.
+    // Wrap the built-in react preset to force the classic runtime (React.createElement).
+    const _reactPreset = Babel.availablePresets['react'];
+    Babel.availablePresets['react'] = function(api, opts) {
+      return _reactPreset(api, Object.assign({ runtime: 'classic' }, opts));
+    };
+  </script>
   <script src="pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
@@ -470,7 +479,7 @@
 <body>
   <div id="root"></div>
 
-  <script type="text/babel" data-presets="env,react">
+  <script type="text/babel" data-presets="react">
     const { useState, useEffect, useRef, useMemo } = React;
 
     function PdfThumbnail({ file }) {
