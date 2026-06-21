@@ -893,26 +893,26 @@
 
           {/* Desktop left sidebar */}
           <nav className="hidden lg:flex lg:flex-col lg:fixed lg:top-0 lg:left-0 lg:bottom-0 lg:w-60 lg:z-40 lg:justify-between lg:py-10 lg:px-7 border-r overflow-y-auto no-scrollbar"
-               style={{ borderColor: 'var(--rule)', background: 'var(--bg)' }}>
+               style={{ borderColor: 'rgba(255,255,255,0.12)', background: '#000' }}>
             <div>
               <a href="#top" className="block mb-12">
-                <span className="serif text-xl block">{profile.name}</span>
-                <span className="mono text-[10px] uppercase tracking-widest opacity-50">{profile.studio}</span>
+                <span className="serif text-xl block" style={{ color: '#fff' }}>{profile.name}</span>
+                <span className="mono text-[10px] uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.5)' }}>{profile.studio}</span>
               </a>
-              <div className="flex flex-col gap-5 text-xs uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+              <div className="flex flex-col gap-5 text-xs uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.65)' }}>
                 {items.map(([href, label]) => (
-                  <a key={href} href={href} className="ul-link hover:text-stone-900 dark:hover:text-stone-50 transition w-fit">{label}</a>
+                  <a key={href} href={href} className="ul-link hover:!text-white transition w-fit">{label}</a>
                 ))}
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              <button onClick={toggleFs} aria-label="Toggle full-screen scroll" title="Full-screen scrolling" className="border px-3 py-1.5 mono text-[11px] uppercase tracking-widest hover:bg-[var(--ink)] hover:text-[var(--bg)] transition" style={{ borderColor: 'var(--rule)' }}>
+              <button onClick={toggleFs} aria-label="Toggle full-screen scroll" title="Full-screen scrolling" className="border px-3 py-1.5 mono text-[11px] uppercase tracking-widest hover:bg-white hover:text-black transition" style={{ borderColor: 'rgba(255,255,255,0.25)', color: '#fff' }}>
                 {fs ? '▤ Snap' : '▦ Free'}
               </button>
-              <button onClick={toggleTheme} aria-label="Toggle theme" className="border px-3 py-1.5 mono text-[11px] uppercase tracking-widest hover:bg-[var(--ink)] hover:text-[var(--bg)] transition" style={{ borderColor: 'var(--rule)' }}>
+              <button onClick={toggleTheme} aria-label="Toggle theme" className="border px-3 py-1.5 mono text-[11px] uppercase tracking-widest hover:bg-white hover:text-black transition" style={{ borderColor: 'rgba(255,255,255,0.25)', color: '#fff' }}>
                 {theme === 'dark' ? '☀ Light' : '☾ Dark'}
               </button>
-              <a href={profile.cv} download className="border px-3 py-1.5 mono text-[11px] uppercase tracking-widest text-center hover:bg-[var(--ink)] hover:text-[var(--bg)] transition" style={{ borderColor: 'var(--rule)' }}>
+              <a href={profile.cv} download className="border px-3 py-1.5 mono text-[11px] uppercase tracking-widest text-center hover:bg-white hover:text-black transition" style={{ borderColor: 'rgba(255,255,255,0.25)', color: '#fff' }}>
                 CV ↓
               </a>
             </div>
