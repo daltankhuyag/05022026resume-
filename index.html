@@ -359,7 +359,7 @@
       display:grid;
       grid-template-columns:repeat(auto-fill,minmax(195px,1fr));
       gap:clamp(12px,1.8vw,20px);
-      margin-bottom:clamp(28px,4vw,40px);
+      padding-bottom:clamp(70px,9vw,120px);
     }
     .doc-card{
       border:1px solid var(--rule);background:var(--plaster);
@@ -427,17 +427,6 @@
     .doc-act:hover{background:var(--bronze);color:var(--plaster);border-color:var(--bronze)}
     .doc-act:focus-visible{outline:2px solid var(--bronze);outline-offset:-3px}
     .doc-empty{grid-column:1/-1;padding:4em 0;text-align:center;color:var(--stone);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-
-    /* ── Pagination ── */
-    .pagination{display:flex;justify-content:center;align-items:center;gap:.5em;flex-wrap:wrap;padding-bottom:clamp(60px,8vw,100px)}
-    .page-btn{
-      font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;
-      border:1px solid var(--rule);background:transparent;color:var(--ink);
-      min-width:2.6em;padding:.55em .7em;cursor:pointer;transition:all .18s;text-align:center;
-    }
-    .page-btn:hover:not(:disabled){border-color:var(--ink)}
-    .page-btn.on{background:var(--ink);color:var(--plaster);border-color:var(--ink)}
-    .page-btn:disabled{opacity:.3;cursor:default}
 
     /* ── Coursework PDF viewer ── */
     .cw-viewer{
@@ -935,6 +924,35 @@
     function Hero({ scrollY }) {
       return (
         <header id="top" className="hero-abstract pt-36 md:pt-44 lg:pt-20 pb-20 md:pb-28 px-6 md:px-10 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none select-none" aria-hidden="true" style={{ color: 'var(--ink)' }}>
+            <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 800" style={{ opacity: 0.14 }}>
+              <defs>
+                <pattern id="bp-grid-sm" width="28" height="28" patternUnits="userSpaceOnUse">
+                  <path d="M 28 0 L 0 0 0 28" fill="none" stroke="currentColor" strokeWidth="0.4" />
+                </pattern>
+                <pattern id="bp-grid-lg" width="140" height="140" patternUnits="userSpaceOnUse">
+                  <path d="M 140 0 L 0 0 0 140" fill="none" stroke="currentColor" strokeWidth="0.7" />
+                </pattern>
+              </defs>
+              <rect width="1200" height="800" fill="url(#bp-grid-sm)" />
+              <rect width="1200" height="800" fill="url(#bp-grid-lg)" />
+              <line x1="0" y1="0" x2="1200" y2="800" stroke="currentColor" strokeWidth="0.6" strokeDasharray="2 7" />
+              <line x1="1200" y1="0" x2="0" y2="800" stroke="currentColor" strokeWidth="0.6" strokeDasharray="2 7" />
+              <circle cx="1040" cy="130" r="190" fill="none" stroke="currentColor" strokeWidth="0.8" />
+              <circle cx="1040" cy="130" r="125" fill="none" stroke="currentColor" strokeWidth="0.8" />
+              <circle cx="1040" cy="130" r="60" fill="none" stroke="currentColor" strokeWidth="0.8" />
+              <circle cx="1040" cy="130" r="3.5" fill="currentColor" />
+              <g strokeWidth="0.8" stroke="currentColor">
+                <line x1="70" y1="710" x2="360" y2="710" />
+                <line x1="70" y1="698" x2="70" y2="722" />
+                <line x1="360" y1="698" x2="360" y2="722" />
+              </g>
+              <g strokeWidth="0.9" stroke="currentColor">
+                <line x1="196" y1="152" x2="196" y2="180" /><line x1="182" y1="166" x2="210" y2="166" />
+                <line x1="900" y1="560" x2="900" y2="588" /><line x1="886" y1="574" x2="914" y2="574" />
+              </g>
+            </svg>
+          </div>
           <div className="max-w-7xl mx-auto" style={{ transform: `translateY(${Math.min(scrollY * 0.08, 28)}px)` }}>
             <div className="flex justify-between items-baseline mb-8 mono text-[10px] uppercase tracking-[0.4em] reveal" style={{ color: 'var(--muted)' }}>
               <span>{profile.role} — {profile.studio}</span>
@@ -1414,26 +1432,9 @@
       "Professional coursework": "Other",
     };
 
-    const DOCS_PER_PAGE = 6;
-
-    function Pagination({ page, totalPages, onChange }) {
-      if (totalPages <= 1) return null;
-      const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-      return (
-        <div className="pagination">
-          <button className="page-btn" onClick={() => onChange(page - 1)} disabled={page === 1}>← Prev</button>
-          {pages.map(p => (
-            <button key={p} className={`page-btn${p === page ? ' on' : ''}`} onClick={() => onChange(p)}>{p}</button>
-          ))}
-          <button className="page-btn" onClick={() => onChange(page + 1)} disabled={page === totalPages}>Next →</button>
-        </div>
-      );
-    }
-
     function Certifications({ onOpenPdf }) {
       const [search, setSearch] = useState('');
       const [filter, setFilter] = useState('All');
-      const [page, setPage] = useState(1);
 
       const chips = ['All', ...Object.values(CERT_ISSUERS)];
 
@@ -1446,14 +1447,6 @@
           (c.year && c.year.includes(q))
         );
       }), [search, filter]);
-
-      useEffect(() => { setPage(1); }, [search, filter]);
-
-      const totalPages = Math.max(1, Math.ceil(filtered.length / DOCS_PER_PAGE));
-      const paged = useMemo(
-        () => filtered.slice((page - 1) * DOCS_PER_PAGE, page * DOCS_PER_PAGE),
-        [filtered, page]
-      );
 
       return (
         <section id="certifications" className="px-6 md:px-10 py-16 md:py-20 border-t" style={{ borderColor: 'var(--rule)' }}>
@@ -1482,9 +1475,9 @@
             </div>
 
             <div className="doc-grid">
-              {paged.length === 0
+              {filtered.length === 0
                 ? <div className="doc-empty">No results</div>
-                : paged.map(c => {
+                : filtered.map(c => {
                     const pdfUrl = c.file ? encodeURI(c.file) : '';
                     const shortIssuer = CERT_ISSUERS[c.issuer] || c.issuer;
                     return (
@@ -1513,7 +1506,6 @@
                   })
               }
             </div>
-            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
           </div>
         </section>
       );
@@ -1627,7 +1619,6 @@
     function Coursework({ onOpenPdf }) {
       const [search, setSearch] = useState('');
       const [filter, setFilter] = useState('All');
-      const [page, setPage] = useState(1);
 
       const chips = ['All', ...Object.values(GROUP_SHORT)];
 
@@ -1641,14 +1632,6 @@
           c.term.toLowerCase().includes(q)
         );
       }), [search, filter]);
-
-      useEffect(() => { setPage(1); }, [search, filter]);
-
-      const totalPages = Math.max(1, Math.ceil(filtered.length / DOCS_PER_PAGE));
-      const paged = useMemo(
-        () => filtered.slice((page - 1) * DOCS_PER_PAGE, page * DOCS_PER_PAGE),
-        [filtered, page]
-      );
 
       return (
         <section id="coursework" className="px-6 md:px-10 py-16 md:py-20 border-t" style={{ borderColor: 'var(--rule)' }}>
@@ -1685,9 +1668,9 @@
 
             {/* Document grid */}
             <div className="doc-grid">
-              {paged.length === 0
+              {filtered.length === 0
                 ? <div className="doc-empty">No results</div>
-                : paged.map(c => {
+                : filtered.map(c => {
                     const pdfUrl = c.file ? encodeURI(c.file) : '';
                     return (
                       <div key={c.code} className="doc-card">
@@ -1712,7 +1695,6 @@
                   })
               }
             </div>
-            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
           </div>
         </section>
       );
