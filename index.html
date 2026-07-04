@@ -890,7 +890,7 @@
       const items = [
         ['#work', 'Work'], ['#about', 'About'], ['#services', 'Services'],
         ['#experience', 'Experience'], ['#certifications', 'Certifications'], ['#coursework', 'Coursework'],
-        ['#hobby', 'Hobby'], ['#contact', 'Contact'],
+        ['#hobby', 'Recent projects'], ['#contact', 'Contact'],
       ];
       return (
         <>
@@ -1834,28 +1834,29 @@
             ))}
           </div>
 
-          {current && (
-            <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: 'rgba(20,19,17,0.92)' }} onClick={() => setLbPos(null)}>
-              <div className="flex justify-between items-center px-6 py-4 mono text-xs uppercase tracking-widest" style={{ color: PHOTO_TOKENS.paper }} onClick={(e) => e.stopPropagation()}>
+          {current && ReactDOM.createPortal(
+            <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#141311' }} onClick={() => setLbPos(null)}>
+              <div className="flex justify-between items-center gap-3 px-4 md:px-6 py-3 md:py-4 mono text-xs uppercase tracking-widest shrink-0" style={{ color: PHOTO_TOKENS.paper }} onClick={(e) => e.stopPropagation()}>
                 <span style={{ color: PHOTO_TOKENS.safelight }}>FR-{pad(PHOTOS.indexOf(current))}</span>
-                <button onClick={() => setLbPos(null)} className="border px-3 py-1.5" style={{ borderColor: 'rgba(242,241,236,.35)', color: PHOTO_TOKENS.paper }}>Close ✕</button>
+                <button onClick={() => setLbPos(null)} className="border px-3 py-1.5 shrink-0" style={{ borderColor: 'rgba(242,241,236,.35)', color: PHOTO_TOKENS.paper }}>Close ✕</button>
               </div>
-              <div className="flex-1 relative flex items-center justify-center px-4 md:px-16" onClick={(e) => e.stopPropagation()}>
+              <div className="flex-1 min-h-0 relative flex items-center justify-center px-3 md:px-16" onClick={(e) => e.stopPropagation()}>
                 {filtered.length > 1 && (
                   <button onClick={() => setLbPos((lbPos - 1 + filtered.length) % filtered.length)}
-                          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 text-3xl hover:opacity-100" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Previous photograph">←</button>
+                          className="absolute left-0 md:left-6 top-1/2 -translate-y-1/2 text-2xl md:text-3xl hover:opacity-100 px-2 md:px-0" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Previous photograph">←</button>
                 )}
                 <img src={current.full} alt={current.title} className="max-h-full max-w-full object-contain" style={{ boxShadow: '0 20px 60px rgba(0,0,0,.5)' }} />
                 {filtered.length > 1 && (
                   <button onClick={() => setLbPos((lbPos + 1) % filtered.length)}
-                          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 text-3xl hover:opacity-100" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Next photograph">→</button>
+                          className="absolute right-0 md:right-6 top-1/2 -translate-y-1/2 text-2xl md:text-3xl hover:opacity-100 px-2 md:px-0" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Next photograph">→</button>
                 )}
               </div>
-              <div className="flex flex-wrap justify-between items-baseline gap-3 px-6 py-4 mono text-xs" onClick={(e) => e.stopPropagation()} style={{ color: 'rgba(242,241,236,.75)' }}>
+              <div className="flex flex-wrap justify-between items-baseline gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 mono text-xs shrink-0" onClick={(e) => e.stopPropagation()} style={{ color: 'rgba(242,241,236,.75)' }}>
                 <span className="serif" style={{ fontSize: 15, color: PHOTO_TOKENS.paper }}>{current.title}</span>
                 <span>{current.meta} · {current.cat}</span>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       );
@@ -1879,7 +1880,7 @@
             <div className="max-w-7xl mx-auto pt-10 pb-24 md:pt-16">
               <button onClick={onClose} className="mono text-xs uppercase tracking-widest ul-link mb-12 inline-block">← Back to portfolio</button>
               <div className="mb-12 md:mb-16">
-                <h2 className="serif display text-4xl md:text-6xl">Hobby</h2>
+                <h2 className="serif display text-4xl md:text-6xl">Recent projects</h2>
               </div>
               <div className="border-t pt-6" style={{ borderColor: 'var(--rule)' }}>
                 <h3 className="serif text-2xl mb-3">Photography</h3>
@@ -2165,7 +2166,7 @@
                 <li><a href="#work" className="ul-link">Work</a></li>
                 <li><a href="#about" className="ul-link">About</a></li>
                 <li><a href="#services" className="ul-link">Services</a></li>
-                <li><a href="#hobby" className="ul-link">Hobby</a></li>
+                <li><a href="#hobby" className="ul-link">Recent projects</a></li>
                 <li><a href="#contact" className="ul-link">Contact</a></li>
               </ul>
             </div>
