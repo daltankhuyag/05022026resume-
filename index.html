@@ -677,6 +677,26 @@
       Software: ["Revit", "AutoCAD", "SketchUp", "Adobe Creative Suite", "Lumion"],
       Other: ["Hand drafting & sketching", "Physical model-making", "Permitting & Construction documenting", "Specification writing (CSI MasterFormat)"],
     };
+
+    // ── Photography — hobby gallery, edit PHOTOS with your own image paths ──
+    const PHOTO_TOKENS = {
+      wall: '#C9C8C2', wallDeep: '#B4B3AC', ink: '#1C1B18', inkSoft: '#4A4844',
+      paper: '#F2F1EC', safelight: '#C4321F', line: '#9E9D96',
+    };
+    const PHOTOS = [
+      { title: "North Elevation, Dusk",   cat: "architecture", meta: "24mm · f/8 · 1/60",    src: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",  full: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80" },
+      { title: "Concrete Stair Core",     cat: "architecture", meta: "35mm · f/5.6 · 1/125", src: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900&q=80",  full: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1800&q=80" },
+      { title: "Reading Room, Morning",   cat: "interior",     meta: "28mm · f/4 · 1/40",    src: "https://images.unsplash.com/photo-1600573472556-e636c2acda88?w=900&q=80",  full: "https://images.unsplash.com/photo-1600573472556-e636c2acda88?w=1800&q=80" },
+      { title: "Ridge Line, Fog",         cat: "landscape",    meta: "70mm · f/11 · 1/250",  src: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=960&q=80",  full: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1920&q=80" },
+      { title: "Brass Pull, Worn",        cat: "detail",       meta: "90mm · f/2.8 · 1/200", src: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80",  full: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=1600&q=80" },
+      { title: "Corridor, Slatted Light", cat: "interior",     meta: "35mm · f/2 · 1/80",    src: "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?w=800&q=80",  full: "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?w=1600&q=80" },
+      { title: "Facade Rhythm Study",     cat: "architecture", meta: "50mm · f/8 · 1/160",   src: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",  full: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=80" },
+      { title: "Valley Floor, Late Sun",  cat: "landscape",    meta: "35mm · f/9 · 1/320",   src: "https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=900&q=80",  full: "https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=1800&q=80" },
+      { title: "Joinery, Oak on Oak",     cat: "detail",       meta: "100mm · f/4 · 1/100",  src: "https://images.unsplash.com/photo-1564540583246-934409427776?w=800&q=80",  full: "https://images.unsplash.com/photo-1564540583246-934409427776?w=1600&q=80" },
+      { title: "Kitchen, Stone Counter",  cat: "interior",     meta: "24mm · f/5.6 · 1/60",  src: "https://images.unsplash.com/photo-1600607688066-890987f19a02?w=900&q=80",  full: "https://images.unsplash.com/photo-1600607688066-890987f19a02?w=1800&q=80" },
+      { title: "Shoreline Grid",          cat: "landscape",    meta: "85mm · f/13 · 1/400",  src: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=960&q=80",  full: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1920&q=80" },
+      { title: "Weld Seam, Blackened",    cat: "detail",       meta: "60mm · f/3.5 · 1/125", src: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&q=80",  full: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1600&q=80" },
+    ];
     const coursework = [
       { code: "C01", group: "Northern Virginia Community College · Architecture Technology", title: "Wood Construction Study", subtitle: "Residential wood construction coursework PDF", studio: "Wood course", term: "2021-2024", file: "coursework/C01_Wood_NOVA_course.pdf" },
       { code: "C02", group: "Northern Virginia Community College · Architecture Technology", title: "Sustainable Environment", subtitle: "Fire protection and building systems essay", studio: "ARC 243", term: "2021-2024", file: "coursework/C02_ARC243_Sustainable_Environment-DASHALTANKHUYAG.pdf" },
@@ -855,7 +875,8 @@
       const [open, setOpen] = useState(false);
       const items = [
         ['#work', 'Work'], ['#about', 'About'], ['#services', 'Services'],
-        ['#experience', 'Experience'], ['#certifications', 'Certifications'], ['#coursework', 'Coursework'], ['#contact', 'Contact'],
+        ['#experience', 'Experience'], ['#certifications', 'Certifications'], ['#coursework', 'Coursework'],
+        ['#hobby', 'Hobby'], ['#contact', 'Contact'],
       ];
       return (
         <>
@@ -1742,6 +1763,123 @@
       );
     }
 
+    // Photo gallery embedded inline in the Hobby page — filterable grid + lightbox,
+    // scoped to its own "light table" palette (PHOTO_TOKENS) rather than the site theme.
+    function PhotoGallery() {
+      const [filter, setFilter] = useState('all');
+      const [lbPos, setLbPos] = useState(null);
+      const cats = ['all', 'architecture', 'interior', 'landscape', 'detail'];
+      const filtered = useMemo(() => filter === 'all' ? PHOTOS : PHOTOS.filter((p) => p.cat === filter), [filter]);
+      const countFor = (c) => c === 'all' ? PHOTOS.length : PHOTOS.filter((p) => p.cat === c).length;
+      const pad = (n) => String(n + 1).padStart(2, '0');
+      const current = lbPos !== null ? filtered[lbPos] : null;
+
+      useEffect(() => {
+        if (lbPos === null) return;
+        const onKey = (e) => {
+          if (e.key === 'Escape') setLbPos(null);
+          if (e.key === 'ArrowRight') setLbPos((p) => (p + 1) % filtered.length);
+          if (e.key === 'ArrowLeft') setLbPos((p) => (p - 1 + filtered.length) % filtered.length);
+        };
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('keydown', onKey);
+        return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+      }, [lbPos, filtered.length]);
+
+      return (
+        <div className="mt-8">
+          <div className="flex flex-wrap gap-2 mb-8">
+            {cats.map((c) => (
+              <button key={c} onClick={() => { setFilter(c); setLbPos(null); }}
+                className="mono text-[11px] uppercase tracking-widest px-3 py-1.5 border transition"
+                style={{
+                  borderColor: PHOTO_TOKENS.line,
+                  background: filter === c ? PHOTO_TOKENS.ink : 'transparent',
+                  color: filter === c ? PHOTO_TOKENS.paper : PHOTO_TOKENS.ink,
+                  opacity: filter === c ? 1 : 0.75,
+                }}>
+                {c === 'all' ? 'All' : c[0].toUpperCase() + c.slice(1)}
+                <span style={{ color: filter === c ? PHOTO_TOKENS.wall : PHOTO_TOKENS.safelight, marginLeft: 6, fontSize: 10 }}>
+                  {countFor(c)}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+            {filtered.map((p, i) => (
+              <button key={p.title} onClick={() => setLbPos(i)} className="text-left group"
+                style={{ background: PHOTO_TOKENS.paper, padding: '10px 10px 0', boxShadow: '0 1px 2px rgba(28,27,24,.18), 0 6px 18px rgba(28,27,24,.10)', cursor: 'zoom-in' }}>
+                <img src={p.src} alt={p.title} loading="lazy" className="w-full block"
+                     style={{ aspectRatio: '1 / 1', objectFit: 'cover', background: PHOTO_TOKENS.wallDeep }} />
+                <div className="mono flex justify-between items-baseline gap-2" style={{ fontSize: 10.5, letterSpacing: '.05em', color: PHOTO_TOKENS.inkSoft, padding: '9px 2px 10px' }}>
+                  <span style={{ color: PHOTO_TOKENS.safelight, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>FR-{pad(PHOTOS.indexOf(p))}</span>
+                  <span className="opacity-0 group-hover:opacity-100 transition truncate" style={{ minWidth: 0 }}>{p.meta} · {p.cat}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {current && (
+            <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: 'rgba(20,19,17,0.92)' }} onClick={() => setLbPos(null)}>
+              <div className="flex justify-between items-center px-6 py-4 mono text-xs uppercase tracking-widest" style={{ color: PHOTO_TOKENS.paper }} onClick={(e) => e.stopPropagation()}>
+                <span style={{ color: PHOTO_TOKENS.safelight }}>FR-{pad(PHOTOS.indexOf(current))}</span>
+                <button onClick={() => setLbPos(null)} className="border px-3 py-1.5" style={{ borderColor: 'rgba(242,241,236,.35)', color: PHOTO_TOKENS.paper }}>Close ✕</button>
+              </div>
+              <div className="flex-1 relative flex items-center justify-center px-4 md:px-16" onClick={(e) => e.stopPropagation()}>
+                {filtered.length > 1 && (
+                  <button onClick={() => setLbPos((lbPos - 1 + filtered.length) % filtered.length)}
+                          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 text-3xl hover:opacity-100" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Previous photograph">←</button>
+                )}
+                <img src={current.full} alt={current.title} className="max-h-full max-w-full object-contain" style={{ boxShadow: '0 20px 60px rgba(0,0,0,.5)' }} />
+                {filtered.length > 1 && (
+                  <button onClick={() => setLbPos((lbPos + 1) % filtered.length)}
+                          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 text-3xl hover:opacity-100" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Next photograph">→</button>
+                )}
+              </div>
+              <div className="flex flex-wrap justify-between items-baseline gap-3 px-6 py-4 mono text-xs" onClick={(e) => e.stopPropagation()} style={{ color: 'rgba(242,241,236,.75)' }}>
+                <span className="serif" style={{ fontSize: 15, color: PHOTO_TOKENS.paper }}>{current.title}</span>
+                <span>{current.meta} · {current.cat}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Hobby is a standalone page reached from the nav — it is not part of the
+    // main scrolling page, so it renders as a full overlay toggled by the
+    // "#hobby" URL hash rather than as a <section> inside <main>.
+    function HobbyPage({ open, onClose }) {
+      useEffect(() => {
+        if (!open) return;
+        const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('keydown', onKey);
+        return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+      }, [open, onClose]);
+      if (!open) return null;
+      return (
+        <div className="fixed inset-0 z-50 overflow-y-auto modal-shell" style={{ background: 'var(--bg)' }}>
+          <div className="modal-panel px-6 md:px-10 lg:pl-60">
+            <div className="max-w-7xl mx-auto pt-10 pb-24 md:pt-16">
+              <button onClick={onClose} className="mono text-xs uppercase tracking-widest ul-link mb-12 inline-block">← Back to portfolio</button>
+              <div className="mb-12 md:mb-16">
+                <h2 className="serif display text-4xl md:text-6xl">Hobby</h2>
+              </div>
+              <div className="border-t pt-6" style={{ borderColor: 'var(--rule)' }}>
+                <h3 className="serif text-2xl mb-3">Photography</h3>
+                <p className="text-sm leading-relaxed max-w-2xl" style={{ color: 'var(--muted)' }}>
+                  Architecture, interiors, and landscape — a running contact sheet from job sites and travel.
+                </p>
+                <PhotoGallery />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     function Press() {
       return (
         <section className="px-6 md:px-10 py-20 border-t" style={{ borderColor: 'var(--rule)' }}>
@@ -2013,6 +2151,7 @@
                 <li><a href="#work" className="ul-link">Work</a></li>
                 <li><a href="#about" className="ul-link">About</a></li>
                 <li><a href="#services" className="ul-link">Services</a></li>
+                <li><a href="#hobby" className="ul-link">Hobby</a></li>
                 <li><a href="#contact" className="ul-link">Contact</a></li>
               </ul>
             </div>
@@ -2057,6 +2196,7 @@
       const [scrolled, setScrolled] = useState(false);
       const [showTop, setShowTop] = useState(false);
       const [scrollY, setScrollY] = useState(0);
+      const [hobbyOpen, setHobbyOpen] = useState(() => typeof window !== 'undefined' && window.location.hash === '#hobby');
       const progress = useScrollProgress();
       useReveal();
       useCursor();
@@ -2064,6 +2204,17 @@
       useEffect(() => {
         document.documentElement.style.setProperty('--scroll-progress', progress.toFixed(2));
       }, [progress]);
+
+      useEffect(() => {
+        const onHashChange = () => setHobbyOpen(window.location.hash === '#hobby');
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+      }, []);
+
+      const closeHobby = () => {
+        history.pushState('', document.title, window.location.pathname + window.location.search);
+        setHobbyOpen(false);
+      };
 
       useEffect(() => {
         const t = setTimeout(() => setLoading(false), 900);
@@ -2101,6 +2252,7 @@
           <Lightbox project={active} onClose={() => setActive(null)} />
           <PdfViewer item={activePdf} onClose={() => setActivePdf(null)} />
           <CourseViewer item={activeCoursePdf} onClose={() => setActiveCoursePdf(null)} />
+          <HobbyPage open={hobbyOpen} onClose={closeHobby} />
           <BackToTop visible={showTop} />
         </>
       );
