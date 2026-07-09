@@ -1216,6 +1216,17 @@
               <div className="mt-8 mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
                 {idx + 1} / {project.images.length}
               </div>
+              {project.images.length > 1 && (
+                <div className="mt-4 grid grid-cols-4 gap-2">
+                  {project.images.map((src, i) => (
+                    <button key={src} onClick={() => setIdx(i)}
+                            className="overflow-hidden aspect-[4/3]"
+                            style={{ border: `1px solid ${i === idx ? 'var(--ink)' : 'var(--rule)'}`, opacity: i === idx ? 1 : 0.6 }}>
+                      <img src={src} alt={`${project.title} ${i + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </aside>
           </div>
         </div>
@@ -1791,13 +1802,16 @@
       useEffect(() => {
         if (lbPos === null) return;
         const onKey = (e) => {
-          if (e.key === 'Escape') setLbPos(null);
+          // Capture phase + stopPropagation so this fires before, and blocks,
+          // HobbyPage's own Escape handler — otherwise Escape would close the
+          // photo AND the whole Hobby overlay in one keypress.
+          if (e.key === 'Escape') { e.stopPropagation(); setLbPos(null); }
           if (e.key === 'ArrowRight') setLbPos((p) => (p + 1) % filtered.length);
           if (e.key === 'ArrowLeft') setLbPos((p) => (p - 1 + filtered.length) % filtered.length);
         };
         document.body.style.overflow = 'hidden';
-        window.addEventListener('keydown', onKey);
-        return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+        window.addEventListener('keydown', onKey, true);
+        return () => { window.removeEventListener('keydown', onKey, true); document.body.style.overflow = ''; };
       }, [lbPos, filtered.length]);
 
       return (
