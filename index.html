@@ -1177,6 +1177,7 @@
         if (!project) return;
         const onKey = (e) => {
           if (e.key === 'Escape') onClose();
+          if (project.images.length === 0) return;
           if (e.key === 'ArrowRight') setIdx(i => (i + 1) % project.images.length);
           if (e.key === 'ArrowLeft')  setIdx(i => (i - 1 + project.images.length) % project.images.length);
         };
@@ -1193,7 +1194,9 @@
           </div>
           <div className="h-full flex flex-col md:flex-row modal-panel" onClick={(e) => e.stopPropagation()}>
             <div className="flex-1 relative flex items-center justify-center px-4 md:px-10 pt-20 md:pt-24 pb-6">
-              <img key={project.images[idx]} src={project.images[idx]} alt={project.title} className="max-h-full max-w-full object-contain lightbox-image" />
+              {project.images.length > 0 && (
+                <img key={project.images[idx]} src={project.images[idx]} alt={project.title} className="max-h-full max-w-full object-contain lightbox-image" />
+              )}
               {project.images.length > 1 && (
                 <>
                   <button onClick={() => setIdx(i => (i - 1 + project.images.length) % project.images.length)}
@@ -1213,9 +1216,11 @@
                 <dt className="mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Status</dt><dd>{project.status}</dd>
                 <dt className="mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Role</dt><dd>{project.role}</dd>
               </dl>
-              <div className="mt-8 mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
-                {idx + 1} / {project.images.length}
-              </div>
+              {project.images.length > 0 && (
+                <div className="mt-8 mono text-[10px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+                  {idx + 1} / {project.images.length}
+                </div>
+              )}
               {project.images.length > 1 && (
                 <div className="mt-4 grid grid-cols-4 gap-2">
                   {project.images.map((src, i) => (
