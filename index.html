@@ -697,20 +697,17 @@
       wall: '#C9C8C2', wallDeep: '#B4B3AC', ink: '#1C1B18', inkSoft: '#4A4844',
       paper: '#F2F1EC', safelight: '#C4321F', line: '#9E9D96',
     };
-    const PHOTOS = [
-      { title: "North Elevation, Dusk",   cat: "architecture", meta: "24mm · f/8 · 1/60",    src: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",  full: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80" },
-      { title: "Concrete Stair Core",     cat: "architecture", meta: "35mm · f/5.6 · 1/125", src: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=900&q=80",  full: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1800&q=80" },
-      { title: "Reading Room, Morning",   cat: "interior",     meta: "28mm · f/4 · 1/40",    src: "https://images.unsplash.com/photo-1600573472556-e636c2acda88?w=900&q=80",  full: "https://images.unsplash.com/photo-1600573472556-e636c2acda88?w=1800&q=80" },
-      { title: "Ridge Line, Fog",         cat: "landscape",    meta: "70mm · f/11 · 1/250",  src: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=960&q=80",  full: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1920&q=80" },
-      { title: "Brass Pull, Worn",        cat: "detail",       meta: "90mm · f/2.8 · 1/200", src: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80",  full: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=1600&q=80" },
-      { title: "Corridor, Slatted Light", cat: "interior",     meta: "35mm · f/2 · 1/80",    src: "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?w=800&q=80",  full: "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?w=1600&q=80" },
-      { title: "Facade Rhythm Study",     cat: "architecture", meta: "50mm · f/8 · 1/160",   src: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",  full: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=80" },
-      { title: "Valley Floor, Late Sun",  cat: "landscape",    meta: "35mm · f/9 · 1/320",   src: "https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=900&q=80",  full: "https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=1800&q=80" },
-      { title: "Joinery, Oak on Oak",     cat: "detail",       meta: "100mm · f/4 · 1/100",  src: "https://images.unsplash.com/photo-1564540583246-934409427776?w=800&q=80",  full: "https://images.unsplash.com/photo-1564540583246-934409427776?w=1600&q=80" },
-      { title: "Kitchen, Stone Counter",  cat: "interior",     meta: "24mm · f/5.6 · 1/60",  src: "https://images.unsplash.com/photo-1600607688066-890987f19a02?w=900&q=80",  full: "https://images.unsplash.com/photo-1600607688066-890987f19a02?w=1800&q=80" },
-      { title: "Shoreline Grid",          cat: "landscape",    meta: "85mm · f/13 · 1/400",  src: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=960&q=80",  full: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1920&q=80" },
-      { title: "Weld Seam, Blackened",    cat: "detail",       meta: "60mm · f/3.5 · 1/125", src: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&q=80",  full: "https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=1600&q=80" },
-    ];
+    // Placeholder gallery: remove the stock photography and add your own images here later.
+    const PHOTOS = [];
+    const PHOTO_CATEGORIES = ['architecture', 'interior', 'landscape', 'detail'];
+    const PHOTO_ADMIN = { username: 'd_altankhuyag', password: '19880412' };
+    const PHOTO_STORAGE_KEY = 'recent-project-custom-photos-v1';
+    const SUPABASE_STORAGE = {
+      // Fill these to enable internet-shared uploads/deletes.
+      url: '',
+      anonKey: '',
+      bucket: '',
+    };
     const coursework = [
       { code: "C01", group: "Northern Virginia Community College · Architecture Technology", title: "Wood Construction Study", subtitle: "Residential wood construction coursework PDF", studio: "Wood course", term: "2021-2024", file: "coursework/C01_Wood_NOVA_course.pdf" },
       { code: "C02", group: "Northern Virginia Community College · Architecture Technology", title: "Sustainable Environment", subtitle: "Fire protection and building systems essay", studio: "ARC 243", term: "2021-2024", file: "coursework/C02_ARC243_Sustainable_Environment-DASHALTANKHUYAG.pdf" },
@@ -1798,9 +1795,142 @@
     function PhotoGallery() {
       const [filter, setFilter] = useState('all');
       const [lbPos, setLbPos] = useState(null);
-      const cats = ['all', 'architecture', 'interior', 'landscape', 'detail'];
-      const filtered = useMemo(() => filter === 'all' ? PHOTOS : PHOTOS.filter((p) => p.cat === filter), [filter]);
-      const countFor = (c) => c === 'all' ? PHOTOS.length : PHOTOS.filter((p) => p.cat === c).length;
+      const [customPhotos, setCustomPhotos] = useState([]);
+      const [isAdmin, setIsAdmin] = useState(false);
+      const [login, setLogin] = useState({ username: '', password: '' });
+      const [loginError, setLoginError] = useState('');
+      const [formError, setFormError] = useState('');
+      const [storageWarning, setStorageWarning] = useState('');
+      const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+      const [isSyncing, setIsSyncing] = useState(false);
+      const [newPhotoFile, setNewPhotoFile] = useState(null);
+      const [newPhoto, setNewPhoto] = useState({ title: '', cat: PHOTO_CATEGORIES[0], meta: '' });
+      const cats = ['all', ...PHOTO_CATEGORIES];
+      const hasSupabaseConfig = Boolean(
+        SUPABASE_STORAGE.url &&
+        SUPABASE_STORAGE.anonKey &&
+        SUPABASE_STORAGE.bucket
+      );
+      const storageMode = hasSupabaseConfig ? 'cloud' : 'browser';
+
+      const supabaseHeaders = useMemo(
+        () => ({
+          apikey: SUPABASE_STORAGE.anonKey,
+          Authorization: `Bearer ${SUPABASE_STORAGE.anonKey}`,
+        }),
+        []
+      );
+      const encodeStoragePath = (path) => path.split('/').map(encodeURIComponent).join('/');
+      const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+      useEffect(() => {
+        let cancelled = false;
+        const loadPhotos = async () => {
+          if (hasSupabaseConfig) {
+            setIsSyncing(true);
+            try {
+              const listResp = await fetch(`${SUPABASE_STORAGE.url}/storage/v1/object/list/${SUPABASE_STORAGE.bucket}`, {
+                method: 'POST',
+                headers: { ...supabaseHeaders, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prefix: '', limit: 1000, offset: 0, sortBy: { column: 'name', order: 'desc' } }),
+              });
+              if (!listResp.ok) {
+                throw new Error(`List failed with ${listResp.status}`);
+              }
+              const files = await listResp.json();
+              if (!Array.isArray(files)) {
+                throw new Error('List response is not an array');
+              }
+              const normalized = files
+                .filter((item) => item && typeof item.name === 'string' && item.name.includes('/'))
+                .map((item, index) => {
+                  const path = item.name;
+                  const parts = path.split('/');
+                  const rawCat = parts[0];
+                  const fileName = parts[parts.length - 1];
+                  const titleFromName = fileName.replace(/\.[^.]+$/, '').replace(/^\d+-/, '').replace(/-/g, ' ').trim();
+                  const cat = PHOTO_CATEGORIES.includes(rawCat) ? rawCat : PHOTO_CATEGORIES[0];
+                  const encodedPath = encodeStoragePath(path);
+                  const publicUrl = `${SUPABASE_STORAGE.url}/storage/v1/object/public/${SUPABASE_STORAGE.bucket}/${encodedPath}`;
+                  return {
+                    id: path || `cloud-${index}`,
+                    isCustom: true,
+                    storagePath: path,
+                    title: titleFromName || `Uploaded image ${index + 1}`,
+                    cat,
+                    meta: 'Cloud upload',
+                    src: publicUrl,
+                    full: publicUrl,
+                  };
+                });
+              if (!cancelled) {
+                setCustomPhotos(normalized);
+                setStorageWarning('');
+              }
+            } catch (error) {
+              console.error('Unable to load cloud photos:', error);
+              if (!cancelled) setStorageWarning('Cloud storage is configured but could not be reached.');
+            } finally {
+              if (!cancelled) setIsSyncing(false);
+            }
+            return;
+          }
+
+          let raw = null;
+          try {
+            raw = localStorage.getItem(PHOTO_STORAGE_KEY);
+          } catch (error) {
+            console.error('Unable to read custom photos from localStorage:', error);
+            if (!cancelled) setStorageWarning('Uploads cannot be persisted in this browser session.');
+            return;
+          }
+          if (!raw) return;
+          let parsed = null;
+          try {
+            parsed = JSON.parse(raw);
+          } catch (error) {
+            console.error('Invalid custom photo data in localStorage:', error);
+            return;
+          }
+          if (!Array.isArray(parsed)) {
+            console.error('Custom photo data is not an array.');
+            return;
+          }
+          const normalized = parsed
+            .filter((p) =>
+              p &&
+              typeof p.title === 'string' &&
+              typeof p.cat === 'string' &&
+              typeof p.src === 'string' &&
+              typeof p.full === 'string' &&
+              PHOTO_CATEGORIES.includes(p.cat)
+            )
+            .map((p, index) => ({
+              ...p,
+              id: typeof p.id === 'string' && p.id ? p.id : `custom-${Date.now()}-${index}`,
+              isCustom: true,
+            }));
+          if (!cancelled) setCustomPhotos(normalized);
+        };
+
+        loadPhotos();
+        return () => { cancelled = true; };
+      }, []);
+
+      useEffect(() => {
+        if (hasSupabaseConfig) return;
+        try {
+          localStorage.setItem(PHOTO_STORAGE_KEY, JSON.stringify(customPhotos));
+          if (storageWarning) setStorageWarning('');
+        } catch (error) {
+          console.error('Unable to persist custom photos:', error);
+          setStorageWarning('Uploads are loaded but cannot be saved permanently in this browser.');
+        }
+      }, [customPhotos, hasSupabaseConfig, storageWarning]);
+
+      const photos = useMemo(() => [...customPhotos, ...PHOTOS], [customPhotos]);
+      const filtered = useMemo(() => filter === 'all' ? photos : photos.filter((p) => p.cat === filter), [filter, photos]);
+      const countFor = (c) => c === 'all' ? photos.length : photos.filter((p) => p.cat === c).length;
       const pad = (n) => String(n + 1).padStart(2, '0');
       const current = lbPos !== null ? filtered[lbPos] : null;
 
@@ -1819,64 +1949,339 @@
         return () => { window.removeEventListener('keydown', onKey, true); document.body.style.overflow = ''; };
       }, [lbPos, filtered.length]);
 
+      const submitLogin = (e) => {
+        e.preventDefault();
+        if (login.username === PHOTO_ADMIN.username && login.password === PHOTO_ADMIN.password) {
+          setIsAdmin(true);
+          setLoginError('');
+          setLogin({ username: '', password: '' });
+          return;
+        }
+        setLoginError('Invalid admin credentials.');
+      };
+
+      const submitNewPhoto = (e) => {
+        e.preventDefault();
+        setFormError('');
+        if (isSavingPhoto) return;
+        const title = newPhoto.title.trim();
+        const cat = newPhoto.cat.trim().toLowerCase();
+        const meta = newPhoto.meta.trim() || 'Custom upload';
+
+        if (!title) {
+          setFormError('Title is required.');
+          return;
+        }
+        if (!PHOTO_CATEGORIES.includes(cat)) {
+          setFormError('Please choose a valid category.');
+          return;
+        }
+        if (!newPhotoFile) {
+          setFormError('Please choose an image file to upload.');
+          return;
+        }
+        if (!newPhotoFile.type || !newPhotoFile.type.startsWith('image/')) {
+          setFormError('Only image files can be uploaded.');
+          return;
+        }
+
+        if (hasSupabaseConfig) {
+          const extension = (newPhotoFile.name.split('.').pop() || 'jpg').toLowerCase();
+          const stem = slugify(newPhotoFile.name.replace(/\.[^.]+$/, '')) || `image-${Date.now()}`;
+          const storagePath = `${cat}/${Date.now()}-${stem}.${extension}`;
+          const encodedPath = encodeStoragePath(storagePath);
+          setIsSavingPhoto(true);
+          fetch(`${SUPABASE_STORAGE.url}/storage/v1/object/${SUPABASE_STORAGE.bucket}/${encodedPath}`, {
+            method: 'POST',
+            headers: {
+              ...supabaseHeaders,
+              'Content-Type': newPhotoFile.type || 'application/octet-stream',
+              'x-upsert': 'true',
+            },
+            body: newPhotoFile,
+          })
+            .then((resp) => {
+              if (!resp.ok) {
+                throw new Error(`Upload failed with ${resp.status}`);
+              }
+              const publicUrl = `${SUPABASE_STORAGE.url}/storage/v1/object/public/${SUPABASE_STORAGE.bucket}/${encodedPath}`;
+              setCustomPhotos((prev) => [{
+                id: storagePath,
+                isCustom: true,
+                storagePath,
+                title,
+                cat,
+                meta,
+                src: publicUrl,
+                full: publicUrl,
+              }, ...prev]);
+              setNewPhoto({ title: '', cat: PHOTO_CATEGORIES[0], meta: '' });
+              setNewPhotoFile(null);
+              setFilter('all');
+              setStorageWarning('');
+            })
+            .catch((error) => {
+              console.error('Cloud upload failed:', error);
+              setFormError('Upload failed. Check cloud storage configuration and permissions.');
+            })
+            .finally(() => {
+              setIsSavingPhoto(false);
+            });
+          return;
+        }
+
+        setIsSavingPhoto(true);
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+          if (!dataUrl) {
+            setFormError('Unable to read this image file.');
+            setIsSavingPhoto(false);
+            return;
+          }
+          setCustomPhotos((prev) => [{
+            id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            isCustom: true,
+            title,
+            cat,
+            meta,
+            src: dataUrl,
+            full: dataUrl,
+          }, ...prev]);
+          setNewPhoto({ title: '', cat: PHOTO_CATEGORIES[0], meta: '' });
+          setNewPhotoFile(null);
+          setFilter('all');
+          setIsSavingPhoto(false);
+        };
+        reader.onerror = () => {
+          setFormError('Unable to read this image file.');
+          setIsSavingPhoto(false);
+        };
+        reader.readAsDataURL(newPhotoFile);
+      };
+
+      const removeCustomPhoto = (photoId) => {
+        if (!isAdmin || !photoId) return;
+        if (hasSupabaseConfig) {
+          const encodedPath = encodeStoragePath(photoId);
+          fetch(`${SUPABASE_STORAGE.url}/storage/v1/object/${SUPABASE_STORAGE.bucket}/${encodedPath}`, {
+            method: 'DELETE',
+            headers: supabaseHeaders,
+          })
+            .then((resp) => {
+              if (!resp.ok) {
+                throw new Error(`Delete failed with ${resp.status}`);
+              }
+              setCustomPhotos((prev) => prev.filter((p) => p.id !== photoId));
+            })
+            .catch((error) => {
+              console.error('Cloud delete failed:', error);
+              setFormError('Delete failed. Check cloud storage configuration and permissions.');
+            });
+          return;
+        }
+        setCustomPhotos((prev) => prev.filter((p) => p.id !== photoId));
+      };
+
       return (
-        <div className="mt-8">
-          <div className="flex flex-wrap gap-2 mb-8">
-            {cats.map((c) => (
-              <button key={c} onClick={() => { setFilter(c); setLbPos(null); }}
-                className="mono text-[11px] uppercase tracking-widest px-3 py-1.5 border transition"
-                style={{
-                  borderColor: PHOTO_TOKENS.line,
-                  background: filter === c ? PHOTO_TOKENS.ink : 'transparent',
-                  color: filter === c ? PHOTO_TOKENS.paper : PHOTO_TOKENS.ink,
-                  opacity: filter === c ? 1 : 0.75,
-                }}>
-                {c === 'all' ? 'All' : c[0].toUpperCase() + c.slice(1)}
-                <span style={{ color: filter === c ? PHOTO_TOKENS.wall : PHOTO_TOKENS.safelight, marginLeft: 6, fontSize: 10 }}>
-                  {countFor(c)}
-                </span>
-              </button>
-            ))}
+        <div className="mt-8 space-y-6">
+          <div className="border p-4 md:p-5" style={{ borderColor: PHOTO_TOKENS.line, background: 'rgba(255,255,255,0.24)' }}>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div className="mono text-[10px] uppercase tracking-[0.3em]" style={{ color: PHOTO_TOKENS.inkSoft }}>Admin image manager</div>
+              {isAdmin ? (
+                <button
+                  type="button"
+                  onClick={() => setIsAdmin(false)}
+                  className="mono text-[10px] uppercase tracking-widest px-3 py-1.5 border transition hover:opacity-80"
+                  style={{ borderColor: PHOTO_TOKENS.line }}
+                >
+                  Sign out
+                </button>
+              ) : null}
+            </div>
+
+            {!isAdmin ? (
+              <form onSubmit={submitLogin} className="grid md:grid-cols-3 gap-3">
+                <input
+                  type="text"
+                  value={login.username}
+                  onChange={(e) => setLogin((prev) => ({ ...prev, username: e.target.value }))}
+                  placeholder="Admin username"
+                  className="border px-3 py-2 text-sm"
+                  style={{ borderColor: PHOTO_TOKENS.line, background: PHOTO_TOKENS.paper }}
+                />
+                <input
+                  type="password"
+                  value={login.password}
+                  onChange={(e) => setLogin((prev) => ({ ...prev, password: e.target.value }))}
+                  placeholder="Admin password"
+                  className="border px-3 py-2 text-sm"
+                  style={{ borderColor: PHOTO_TOKENS.line, background: PHOTO_TOKENS.paper }}
+                />
+                <button
+                  type="submit"
+                  className="mono text-[11px] uppercase tracking-widest px-3 py-2 border transition hover:opacity-90"
+                  style={{ borderColor: PHOTO_TOKENS.line, background: PHOTO_TOKENS.ink, color: PHOTO_TOKENS.paper }}
+                >
+                  Login
+                </button>
+                {loginError ? <p className="md:col-span-3 text-sm" style={{ color: PHOTO_TOKENS.safelight }}>{loginError}</p> : null}
+              </form>
+            ) : (
+              <form onSubmit={submitNewPhoto} className="grid md:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  value={newPhoto.title}
+                  onChange={(e) => setNewPhoto((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder="Title"
+                  className="border px-3 py-2 text-sm"
+                  style={{ borderColor: PHOTO_TOKENS.line, background: PHOTO_TOKENS.paper }}
+                />
+                <select
+                  value={newPhoto.cat}
+                  onChange={(e) => setNewPhoto((prev) => ({ ...prev, cat: e.target.value }))}
+                  className="border px-3 py-2 text-sm"
+                  style={{ borderColor: PHOTO_TOKENS.line, background: PHOTO_TOKENS.paper }}
+                >
+                  {PHOTO_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat[0].toUpperCase() + cat.slice(1)}</option>
+                  ))}
+                </select>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                    setNewPhotoFile(file);
+                    if (formError) setFormError('');
+                  }}
+                  className="md:col-span-2 border px-3 py-2 text-sm"
+                  style={{ borderColor: PHOTO_TOKENS.line, background: PHOTO_TOKENS.paper }}
+                />
+                <input
+                  type="text"
+                  value={newPhoto.meta}
+                  onChange={(e) => setNewPhoto((prev) => ({ ...prev, meta: e.target.value }))}
+                  placeholder="Meta text (optional)"
+                  className="md:col-span-2 border px-3 py-2 text-sm"
+                  style={{ borderColor: PHOTO_TOKENS.line, background: PHOTO_TOKENS.paper }}
+                />
+                <button
+                  type="submit"
+                  disabled={isSavingPhoto}
+                  className="mono text-[11px] uppercase tracking-widest px-3 py-2 border transition hover:opacity-90"
+                  style={{ borderColor: PHOTO_TOKENS.line, background: PHOTO_TOKENS.ink, color: PHOTO_TOKENS.paper, opacity: isSavingPhoto ? 0.65 : 1 }}
+                >
+                  {isSavingPhoto ? 'Uploading…' : 'Upload image'}
+                </button>
+                {formError ? <p className="md:col-span-2 text-sm" style={{ color: PHOTO_TOKENS.safelight }}>{formError}</p> : null}
+                <p className="md:col-span-2 text-xs" style={{ color: PHOTO_TOKENS.inkSoft }}>
+                  Storage mode: {storageMode === 'cloud' ? 'Cloud (shared online)' : 'Browser only (not shared online)'}.
+                </p>
+                {isSyncing ? <p className="md:col-span-2 text-xs" style={{ color: PHOTO_TOKENS.inkSoft }}>Syncing images from cloud…</p> : null}
+                {storageWarning ? <p className="md:col-span-2 text-xs" style={{ color: PHOTO_TOKENS.safelight }}>{storageWarning}</p> : null}
+              </form>
+            )}
           </div>
 
-          <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-            {filtered.map((p, i) => (
-              <button key={p.title} onClick={() => setLbPos(i)} className="photo-frame text-left group"
-                style={{ background: PHOTO_TOKENS.paper, padding: '10px 10px 0', border: `1px solid ${PHOTO_TOKENS.line}`, cursor: 'zoom-in' }}>
-                <img src={p.src} alt={p.title} loading="lazy" className="w-full block"
-                     style={{ aspectRatio: '1 / 1', objectFit: 'cover', background: PHOTO_TOKENS.wallDeep }} />
-                <div className="serif truncate" style={{ fontSize: '1rem', color: PHOTO_TOKENS.ink, padding: '10px 2px 0' }}>{p.title}</div>
-                <div className="mono flex justify-between items-baseline gap-2" style={{ fontSize: 10.5, letterSpacing: '.05em', color: PHOTO_TOKENS.inkSoft, padding: '4px 2px 10px' }}>
-                  <span style={{ color: PHOTO_TOKENS.safelight, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>FR-{pad(PHOTOS.indexOf(p))}</span>
-                  <span className="opacity-0 group-hover:opacity-100 transition truncate" style={{ minWidth: 0 }}>{p.meta} · {p.cat}</span>
-                </div>
-              </button>
-            ))}
-          </div>
+          {photos.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {cats.map((c) => (
+                <button key={c} onClick={() => { setFilter(c); setLbPos(null); }}
+                  className="mono text-[11px] uppercase tracking-widest px-3 py-1.5 border transition"
+                  style={{
+                    borderColor: PHOTO_TOKENS.line,
+                    background: filter === c ? PHOTO_TOKENS.ink : 'transparent',
+                    color: filter === c ? PHOTO_TOKENS.paper : PHOTO_TOKENS.ink,
+                    opacity: filter === c ? 1 : 0.75,
+                  }}>
+                  {c === 'all' ? 'All' : c[0].toUpperCase() + c.slice(1)}
+                  <span style={{ color: filter === c ? PHOTO_TOKENS.wall : PHOTO_TOKENS.safelight, marginLeft: 6, fontSize: 10 }}>
+                    {countFor(c)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
 
-          {current && ReactDOM.createPortal(
-            <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#141311' }} onClick={() => setLbPos(null)}>
-              <div className="flex justify-between items-center gap-3 px-4 md:px-6 py-3 md:py-4 mono text-xs uppercase tracking-widest shrink-0" style={{ color: PHOTO_TOKENS.paper }} onClick={(e) => e.stopPropagation()}>
-                <span style={{ color: PHOTO_TOKENS.safelight }}>FR-{pad(PHOTOS.indexOf(current))}</span>
-                <button onClick={() => setLbPos(null)} className="border px-3 py-1.5 shrink-0" style={{ borderColor: 'rgba(242,241,236,.35)', color: PHOTO_TOKENS.paper }}>Close ✕</button>
+          {filtered.length === 0 ? (
+            <div className="flex min-h-[280px] items-center justify-center border border-dashed text-center" style={{ borderColor: PHOTO_TOKENS.line, background: 'rgba(255,255,255,0.25)', color: PHOTO_TOKENS.inkSoft }}>
+              <div className="max-w-md px-6 py-12">
+                <div className="mono text-[10px] uppercase tracking-[0.3em] mb-4" style={{ color: PHOTO_TOKENS.safelight }}>Gallery empty</div>
+                <p className="serif text-2xl md:text-3xl leading-tight" style={{ color: PHOTO_TOKENS.ink }}>Add your own images here later.</p>
               </div>
-              <div className="flex-1 min-h-0 relative flex items-center justify-center px-3 md:px-16" onClick={(e) => e.stopPropagation()}>
-                {filtered.length > 1 && (
-                  <button onClick={() => setLbPos((lbPos - 1 + filtered.length) % filtered.length)}
-                          className="absolute left-0 md:left-6 top-1/2 -translate-y-1/2 text-2xl md:text-3xl hover:opacity-100 px-2 md:px-0" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Previous photograph">←</button>
-                )}
-                <img src={current.full} alt={current.title} className="max-h-full max-w-full object-contain" style={{ boxShadow: '0 20px 60px rgba(0,0,0,.5)' }} />
-                {filtered.length > 1 && (
-                  <button onClick={() => setLbPos((lbPos + 1) % filtered.length)}
-                          className="absolute right-0 md:right-6 top-1/2 -translate-y-1/2 text-2xl md:text-3xl hover:opacity-100 px-2 md:px-0" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Next photograph">→</button>
-                )}
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {filtered.map((p, i) => (
+                  <div key={p.id || `${p.src}-${i}`} className="photo-frame text-left group relative"
+                    style={{ background: PHOTO_TOKENS.paper, padding: '10px 10px 0', border: `1px solid ${PHOTO_TOKENS.line}` }}>
+                    {isAdmin && p.isCustom ? (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); removeCustomPhoto(p.id); }}
+                        className="absolute top-2 right-2 mono text-[10px] uppercase tracking-widest px-2 py-1 border hover:opacity-90"
+                        style={{ borderColor: PHOTO_TOKENS.line, background: 'rgba(20,19,17,0.88)', color: PHOTO_TOKENS.paper }}
+                        aria-label={`Delete ${p.title}`}
+                      >
+                        Delete
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setLbPos(i)}
+                      className="w-full text-left"
+                      style={{ cursor: 'zoom-in' }}
+                    >
+                      <img src={p.src} alt={p.title} loading="lazy" className="w-full block"
+                           style={{ aspectRatio: '1 / 1', objectFit: 'cover', background: PHOTO_TOKENS.wallDeep }} />
+                      <div className="serif truncate" style={{ fontSize: '1rem', color: PHOTO_TOKENS.ink, padding: '10px 2px 0' }}>{p.title}</div>
+                      <div className="mono flex justify-between items-baseline gap-2" style={{ fontSize: 10.5, letterSpacing: '.05em', color: PHOTO_TOKENS.inkSoft, padding: '4px 2px 10px' }}>
+                        <span style={{ color: PHOTO_TOKENS.safelight, fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>FR-{pad(photos.indexOf(p))}</span>
+                        <span className="opacity-0 group-hover:opacity-100 transition truncate" style={{ minWidth: 0 }}>{p.meta} · {p.cat}</span>
+                      </div>
+                    </button>
+                  </div>
+                ))}
               </div>
-              <div className="flex flex-wrap justify-between items-baseline gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 mono text-xs shrink-0" onClick={(e) => e.stopPropagation()} style={{ color: 'rgba(242,241,236,.75)' }}>
-                <span className="serif" style={{ fontSize: 15, color: PHOTO_TOKENS.paper }}>{current.title}</span>
-                <span>{current.meta} · {current.cat}</span>
-              </div>
-            </div>,
-            document.body
+
+              {current && ReactDOM.createPortal(
+                <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#141311' }} onClick={() => setLbPos(null)}>
+                  <div className="flex justify-between items-center gap-3 px-4 md:px-6 py-3 md:py-4 mono text-xs uppercase tracking-widest shrink-0" style={{ color: PHOTO_TOKENS.paper }} onClick={(e) => e.stopPropagation()}>
+                    <span style={{ color: PHOTO_TOKENS.safelight }}>FR-{pad(photos.indexOf(current))}</span>
+                    <div className="flex items-center gap-2">
+                      {isAdmin && current.isCustom ? (
+                        <button
+                          onClick={() => { removeCustomPhoto(current.id); setLbPos(null); }}
+                          className="border px-3 py-1.5 shrink-0"
+                          style={{ borderColor: 'rgba(196,50,31,0.55)', color: PHOTO_TOKENS.paper }}
+                        >
+                          Delete
+                        </button>
+                      ) : null}
+                      <button onClick={() => setLbPos(null)} className="border px-3 py-1.5 shrink-0" style={{ borderColor: 'rgba(242,241,236,.35)', color: PHOTO_TOKENS.paper }}>Close ✕</button>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-0 relative flex items-center justify-center px-3 md:px-16" onClick={(e) => e.stopPropagation()}>
+                    {filtered.length > 1 && (
+                      <button onClick={() => setLbPos((lbPos - 1 + filtered.length) % filtered.length)}
+                              className="absolute left-0 md:left-6 top-1/2 -translate-y-1/2 text-2xl md:text-3xl hover:opacity-100 px-2 md:px-0" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Previous photograph">←</button>
+                    )}
+                    <img src={current.full} alt={current.title} className="max-h-full max-w-full object-contain" style={{ boxShadow: '0 20px 60px rgba(0,0,0,.5)' }} />
+                    {filtered.length > 1 && (
+                      <button onClick={() => setLbPos((lbPos + 1) % filtered.length)}
+                              className="absolute right-0 md:right-6 top-1/2 -translate-y-1/2 text-2xl md:text-3xl hover:opacity-100 px-2 md:px-0" style={{ color: PHOTO_TOKENS.paper, opacity: .65 }} aria-label="Next photograph">→</button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap justify-between items-baseline gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 mono text-xs shrink-0" onClick={(e) => e.stopPropagation()} style={{ color: 'rgba(242,241,236,.75)' }}>
+                    <span className="serif" style={{ fontSize: 15, color: PHOTO_TOKENS.paper }}>{current.title}</span>
+                    <span>{current.meta} · {current.cat}</span>
+                  </div>
+                </div>,
+                document.body
+              )}
+            </>
           )}
         </div>
       );
