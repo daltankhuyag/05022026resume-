@@ -1123,7 +1123,7 @@
       );
     }
 
-    function Work({ onOpen, scrollY }) {
+     function Work({ onOpen, scrollY }) {
       const [filter, setFilter] = useState("All");
       const filtered = useMemo(
         () => filter === "All" ? projects : projects.filter(p => p.type === filter),
@@ -1170,7 +1170,7 @@
       );
     }
 
-    function Lightbox({ project, onClose }) {
+ ''    function Lightbox({ project, onClose }) {
       const [idx, setIdx] = useState(0);
       useEffect(() => { setIdx(0); }, [project]);
       useEffect(() => {
